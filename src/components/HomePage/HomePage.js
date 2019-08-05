@@ -1,5 +1,5 @@
 import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles, withStyles } from "@material-ui/core/styles";
 import { useTheme } from "@material-ui/styles";
 import List from "@material-ui/core/List";
 import Grid from "@material-ui/core/Grid";
@@ -8,10 +8,16 @@ import Typography from "@material-ui/core/Typography";
 import ListItemText from "@material-ui/core/ListItemText";
 import MenuItem from "@material-ui/core/MenuItem";
 import Menu from "@material-ui/core/Menu";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
 import { Bar, Line, Doughnut } from "react-chartjs-2";
 import { SiteContainer, ConfigChip } from "../../components";
 import { Data } from "../../data";
 import { Paper } from "@material-ui/core";
+import Button from "@material-ui/core/Button";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -41,7 +47,49 @@ const useStyles = makeStyles(theme => ({
     padding: theme.spacing(2),
     backgroundColor: theme.customColor.lightBlue.main
   },
+  table: {
+    padding: theme.spacing(2)
+  },
+  verticalTabs: {
+    display: "flex",
+    flexDirection: "column",
+    padding: theme.spacing(0, 3),
+    justifyContent: "center",
+    height: "100%"
+  },
+  horizontalTabs: {
+    marginBottom: theme.spacing(2)
+  }
 }));
+
+const StyledTable = withStyles(theme => ({
+  root: {
+    borderWidth: 1,
+    borderColor: theme.palette.divider,
+    borderStyle: "solid"
+  }
+}))(Table);
+
+const StyledTableCell = withStyles(theme => ({
+  head: {
+    "&:not(:last-child)": {
+      borderTopWidth: 0,
+      borderLeftWidth: 0,
+      borderRightWidth: 1,
+      borderColor: theme.palette.divider,
+      borderStyle: "solid"
+    }
+  },
+  body: {
+    "&:not(:last-child)": {
+      borderTopWidth: 0,
+      borderLeftWidth: 0,
+      borderRightWidth: 1,
+      borderColor: theme.palette.divider,
+      borderStyle: "solid"
+    }
+  }
+}))(TableCell);
 
 const HomePage = () => {
   const classes = useStyles();
@@ -80,13 +128,15 @@ const HomePage = () => {
     });
   };
 
-  const handleMenuItemClick = (event, index, key) => {
+  const handleMenuItemClick = (event, index, key, option) => {
     event.persist();
+    setOption("Alarms");
+    setShift("Shift");
     setSetting({
       ...selectedSetting,
       [key]: {
         index,
-        value: event.textContent
+        value: option
       }
     });
     handleClose(key);
@@ -132,7 +182,7 @@ const HomePage = () => {
           <MenuItem
             key={option}
             selected={index === selectedSetting[key].index}
-            onClick={event => handleMenuItemClick(event, index, key)}
+            onClick={event => handleMenuItemClick(event, index, key, option)}
           >
             {option}
           </MenuItem>
@@ -284,11 +334,7 @@ const HomePage = () => {
                   >
                     {data}
                   </Typography>
-                  <Typography
-                    variant="h5"
-                    component="h5"
-                    align="center"
-                  >
+                  <Typography variant="h5" component="h5" align="center">
                     {pickedData[data]}
                   </Typography>
                 </Paper>
@@ -300,6 +346,98 @@ const HomePage = () => {
     );
   };
 
+  const renderTable = () => {
+    const pickedData = parsedData["Labeller"];
+    const labels = Object.keys(pickedData);
+    const values = Object.keys(pickedData[labels[0]]);
+    return (
+      <React.Fragment>
+        <Typography
+          variant="h5"
+          component="h5"
+          style={{ marginBottom: theme.spacing(2) }}
+        >
+          Labeller
+        </Typography>
+        <StyledTable size="small">
+          <TableHead>
+            <TableRow>
+              <StyledTableCell key={3} />
+              {labels.map((cell, index) => (
+                <StyledTableCell align="center" key={index}>
+                  {cell}
+                </StyledTableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {values.map((cell, index) => (
+              <TableRow key={index}>
+                <StyledTableCell component="th" scope="row">
+                  {cell}
+                </StyledTableCell>
+                {labels.map((innerCell, index) => (
+                  <StyledTableCell align="center" key={index}>
+                    {pickedData[innerCell][cell]}
+                  </StyledTableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </StyledTable>
+      </React.Fragment>
+    );
+  };
+
+  const handleOptionTabChange = label => {
+    setOption(label);
+    setShift("Shift");
+  };
+
+  const renderVertivalTabs = () => {
+    const parsedData =
+      Data.data[selectedSetting["Analysis based on"].value].data[
+        selectedSetting["Selected Period"].value
+      ];
+    const labels = Object.keys(parsedData);
+    return (
+      <React.Fragment>
+        {labels.map((label, index) => (
+          <Button
+            variant="contained"
+            color={label === selectedOption ? "secondary" : "primary"}
+            key={index}
+            onClick={() => handleOptionTabChange(label)}
+            style={{ margin: theme.spacing(1, 0) }}
+          >
+            {label}
+          </Button>
+        ))}
+      </React.Fragment>
+    );
+  };
+
+  const renderHorizontalTabs = () => {
+    const parsedData =
+      Data.data[selectedSetting["Analysis based on"].value].data[
+        selectedSetting["Selected Period"].value
+      ][selectedOption];
+    const labels = Object.keys(parsedData);
+    return (
+      <React.Fragment>
+        {labels.map((label, index) => (
+          <Button
+            color={label === selectedShift ? "secondary" : "primary"}
+            key={index}
+            onClick={() => setShift(label)}
+          >
+            {label}
+          </Button>
+        ))}
+      </React.Fragment>
+    );
+  };
+
   return (
     <SiteContainer>
       <div className={classes.root}>
@@ -308,7 +446,20 @@ const HomePage = () => {
           <Grid container className={classes.grid} spacing={4}>
             <Grid item xs={12} md={6}>
               <Paper>
-                <div className={classes.barChart}>{renderBarChart()}</div>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={4}>
+                    <div className={classes.verticalTabs}>
+                      {renderVertivalTabs()}
+                    </div>
+                  </Grid>
+                  <Grid item xs={12} md={8}>
+                    <div className={classes.horizontalTabs}>
+                      {renderHorizontalTabs()}
+                    </div>
+                    <div className={classes.barChart}>{renderBarChart()}</div>
+                  </Grid>
+                </Grid>
+                <div className={classes.table}>{renderTable()}</div>
               </Paper>
             </Grid>
             <Grid item xs={12} md={6}>
