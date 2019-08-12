@@ -2,7 +2,6 @@ import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
 import Container from "@material-ui/core/Container";
 import PropTypes from "prop-types";
 import { Logo } from "../../assets";
@@ -41,7 +40,7 @@ const useStyles = makeStyles(theme => {
   };
 });
 
-const Header = ({ children }) => {
+const Header = ({ children, logo }) => {
   const classes = useStyles();
   return (
     <div className={classes.root}>
@@ -49,11 +48,10 @@ const Header = ({ children }) => {
         <Container>
           <Toolbar className={classes.headerContainer}>
             <div className={classes.logoContainer}>
-              <img src={Logo} alt={SITE_NAME} className={classes.logo} />
+              <img src={logo} alt={SITE_NAME} className={classes.logo} />
             </div>
-            <Typography variant="h4" color="inherit" className={classes.text}>
-              {children}
-            </Typography>
+            {children}
+            
           </Toolbar>
         </Container>
       </AppBar>
@@ -62,7 +60,12 @@ const Header = ({ children }) => {
 };
 
 Header.propTypes = {
-  children: PropTypes.any
+  children: PropTypes.any,
+  logo: PropTypes.string
+};
+
+Header.defaultProps = {
+  logo: Logo
 };
 
 export default Header;

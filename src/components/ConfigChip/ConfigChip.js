@@ -9,16 +9,23 @@ const useStyles = makeStyles(theme => ({
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    margin: theme.spacing(2, 1),
-    overflow: "hidden"
+    margin: theme.spacing(2, 1)
   },
   title: {
     padding: theme.spacing(1, 2),
     backgroundColor: props => props.titleBg,
-    color: theme.palette.common.white
+    color: theme.palette.common.white,
+    fontSize: theme.typography.pxToRem(12),
+    lineHeight: 1.5
   },
   data: {
-    padding: props => !props.noSpacing && theme.spacing(1, 2)
+    padding: props => !props.noSpacing && theme.spacing(1, 2),
+    fontSize: theme.typography.pxToRem(12),
+    lineHeight: 1.5,
+    "& *": {
+      fontSize: theme.typography.pxToRem(12),
+      lineHeight: 1.5
+    }
   }
 }));
 
@@ -29,7 +36,14 @@ const ConfigChip = ({ title, titleBg, noSpacing, children }) => {
       <Typography variant="body1" component="p" className={classes.title}>
         {title}
       </Typography>
-      <div className={classes.data}>{children}</div>
+      <Typography
+        variant="body1"
+        component="div"
+        className={classes.data}
+        noWrap
+      >
+        {children}
+      </Typography>
     </Paper>
   );
 };
@@ -41,7 +55,7 @@ ConfigChip.propTypes = {
   noSpacing: PropTypes.bool.isRequired
 };
 
-ConfigChip.propTypes = {
+ConfigChip.defaultProps = {
   title: "Title",
   children: "Data",
   titleBg: "#fff",

@@ -4,3 +4,5 @@ export { default as HomePage } from "./HomePage";
 export { default as NotFound } from "./NotFound";
 export { default as SiteContainer } from "./SiteContainer";
 export { default as ConfigChip } from "./ConfigChip";
+export { default as SmartFactoryWorx } from "./SmartFactoryWorx";
+export { default as Settings } from "./Settings";

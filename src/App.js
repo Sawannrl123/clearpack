@@ -1,4 +1,5 @@
 import React from "react";
+import { connect } from "react-redux";
 import {
   BrowserRouter as Router,
   Route,
@@ -6,26 +7,41 @@ import {
   withRouter
 } from "react-router-dom";
 import { ThemeProvider } from "@material-ui/styles";
-import { Header, Footer, HomePage, NotFound } from "./components";
-import { theme } from './theme'
+import { Header, NotFound, Settings } from "./components";
+import { SmartFactoryWorx } from "./containers";
+import { theme } from "./theme";
+import {
+  handleChangeItem,
+  handleDateChange
+} from "./containers/SmartFactoryWorx/actions";
 
+const App = props => {
+  const renderHeader = () => {
+    return (
+      <Header>
+        <Settings
+          data={props.SmartFactoryWorx}
+          handleChangeItem={props.handleChangeItem}
+          handleDateChange={props.handleDateChange}
+        />
+      </Header>
+    );
+  };
 
-const App = () => {
   return (
     <ThemeProvider theme={theme}>
       <Router>
         <Route
-          render={props => {
+          render={() => {
             return (
               <div>
-                <Header>Labeller Analysis</Header>
+                {renderHeader()}
                 <div>
                   <Switch>
-                    <Route exact path="/" component={HomePage} />
+                    <Route exact path="/" component={SmartFactoryWorx} />
                     <Route component={NotFound} />
                   </Switch>
                 </div>
-                <Footer />
               </div>
             );
           }}
@@ -35,4 +51,18 @@ const App = () => {
   );
 };
 
-export default withRouter(App);
+const mapStateToProps = (state, ownProps) => ({
+  ...ownProps,
+  ...state
+});
+
+const mapDispatchToProps = (dispatch, ownProps) => ({
+  ...ownProps,
+  handleChangeItem: (index, value) => dispatch(handleChangeItem(index, value)),
+  handleDateChange: (key, date) => dispatch(handleDateChange(key, date))
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(withRouter(App));

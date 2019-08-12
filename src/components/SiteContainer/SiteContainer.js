@@ -7,7 +7,7 @@ const useStyles = makeStyles(theme => {
   return {
     root: {
       backgroundColor: theme.palette.grey[100],
-      minHeight: props => props.fullPage && "calc(100vh - 100px)",
+      minHeight: props => props.fullPage && "calc(100vh - 119px)",
       display: "flex",
       justifyContent: props => props.center && "center",
       alignItems: props => props.center && "center"
