@@ -6,7 +6,7 @@ import PropTypes from "prop-types";
 const useStyles = makeStyles(theme => {
   return {
     root: {
-      backgroundColor: theme.palette.grey[100],
+      backgroundColor: props => props.backgroundColor,
       minHeight: props => props.fullPage && "calc(100vh - 119px)",
       display: "flex",
       justifyContent: props => props.center && "center",
@@ -27,12 +27,14 @@ const SiteContainer = ({ children, ...props }) => {
 SiteContainer.propTypes = {
   children: PropTypes.any,
   fullPage: PropTypes.bool,
-  center: PropTypes.bool
+  center: PropTypes.bool,
+  backgroundColor: PropTypes.string
 };
 
 SiteContainer.defaultProps = {
   fullPage: false,
-  center: false
+  center: false,
+  backgroundColor: "#f5f5f5"
 };
 
 export default SiteContainer;

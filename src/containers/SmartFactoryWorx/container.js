@@ -1,13 +1,16 @@
 import { connect } from "react-redux";
 import { SmartFactoryWorx } from "../../components";
-import {} from "./actions";
+import { handleDialogToggle } from "../Dialog/actions";
 
 const mapStateToProps = (state, ownProps) => ({
   ...ownProps,
-  ...state.SmartFactoryWorx
+  ...state.SmartFactoryWorx,
+  ...state.Main
 });
 
-const mapDispatchToProps = (dispatch, ownProps) => ({});
+const mapDispatchToProps = dispatch => ({
+  handleDialogToggle: (open, data) => dispatch(handleDialogToggle(open, data))
+});
 
 export default connect(
   mapStateToProps,

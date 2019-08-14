@@ -9,7 +9,8 @@ const useStyles = makeStyles(theme => ({
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    margin: theme.spacing(2, 1)
+    margin: theme.spacing(2, 1),
+    overflow: "hidden"
   },
   title: {
     padding: theme.spacing(1, 2),
@@ -32,7 +33,7 @@ const useStyles = makeStyles(theme => ({
 const ConfigChip = ({ title, titleBg, noSpacing, children }) => {
   const classes = useStyles({ titleBg, noSpacing });
   return (
-    <Paper className={classes.root}>
+    <Paper className={classes.root} elevation={3}>
       <Typography variant="body1" component="p" className={classes.title}>
         {title}
       </Typography>

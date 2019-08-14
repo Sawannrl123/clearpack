@@ -1,4 +1,4 @@
-import React from "react";
+import React, { PureComponent } from "react";
 import { connect } from "react-redux";
 import {
   BrowserRouter as Router,
@@ -14,42 +14,56 @@ import {
   handleChangeItem,
   handleDateChange
 } from "./containers/SmartFactoryWorx/actions";
+import { fetchData } from "./main/actions";
+import { Dialog } from "./containers";
 
-const App = props => {
-  const renderHeader = () => {
+class App extends PureComponent {
+  componentDidMount = async () => {
+    await this.props.fetchData();
+  };
+
+  renderHeader = () => {
     return (
       <Header>
         <Settings
-          data={props.SmartFactoryWorx}
-          handleChangeItem={props.handleChangeItem}
-          handleDateChange={props.handleDateChange}
+          data={this.props.SmartFactoryWorx}
+          handleChangeItem={this.props.handleChangeItem}
+          handleDateChange={this.props.handleDateChange}
         />
       </Header>
     );
   };
 
-  return (
-    <ThemeProvider theme={theme}>
-      <Router>
-        <Route
-          render={() => {
-            return (
-              <div>
-                {renderHeader()}
+  render = () => {
+    return (
+      <ThemeProvider theme={theme}>
+        <Router>
+          <Route
+            render={() => {
+              return (
                 <div>
-                  <Switch>
-                    <Route exact path="/" component={SmartFactoryWorx} />
-                    <Route component={NotFound} />
-                  </Switch>
+                  {this.renderHeader()}
+                  <div>
+                    <Switch>
+                      <Route exact path="/" component={SmartFactoryWorx} />
+                      <Route component={NotFound} />
+                    </Switch>
+                  </div>
+                  <Dialog
+                    title={this.props.Dialog.data.title}
+                    action={this.props.Dialog.data.action}
+                  >
+                    {this.props.Dialog.data.body}
+                  </Dialog>
                 </div>
-              </div>
-            );
-          }}
-        />
-      </Router>
-    </ThemeProvider>
-  );
-};
+              );
+            }}
+          />
+        </Router>
+      </ThemeProvider>
+    );
+  };
+}
 
 const mapStateToProps = (state, ownProps) => ({
   ...ownProps,
@@ -59,7 +73,8 @@ const mapStateToProps = (state, ownProps) => ({
 const mapDispatchToProps = (dispatch, ownProps) => ({
   ...ownProps,
   handleChangeItem: (index, value) => dispatch(handleChangeItem(index, value)),
-  handleDateChange: (key, date) => dispatch(handleDateChange(key, date))
+  handleDateChange: (key, date) => dispatch(handleDateChange(key, date)),
+  fetchData: () => dispatch(fetchData())
 });
 
 export default connect(

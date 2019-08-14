@@ -6,3 +6,5 @@ export { default as SiteContainer } from "./SiteContainer";
 export { default as ConfigChip } from "./ConfigChip";
 export { default as SmartFactoryWorx } from "./SmartFactoryWorx";
 export { default as Settings } from "./Settings";
+export { default as Dialog } from "./Dialog";
+export { default as StatusReport } from "./StatusReport";
