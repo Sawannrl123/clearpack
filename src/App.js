@@ -19,8 +19,23 @@ import { fetchData } from "./main/actions";
 import { Dialog } from "./containers";
 
 class App extends PureComponent {
-  componentDidMount = () => {
-    this.interval = setInterval(async () => await this.props.fetchData(), 6000);
+  state = {
+    isMounted: false
+  };
+
+  componentDidMount = async () => {
+    const { isMounted } = this.state;
+    if (isMounted) {
+      this.interval = setInterval(
+        async () => await this.props.fetchData(),
+        6000
+      );
+    } else {
+      await this.props.fetchData();
+      this.setState({
+        isMounted: true
+      });
+    }
   };
 
   componentWillUnmount = () => {

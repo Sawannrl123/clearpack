@@ -31,35 +31,38 @@ const StatusReport = ({ statusData }) => {
   const data = [
     {
       name: "OEE",
-      value: statusData.oee
+      value: `${statusData.oee * 100}%`
     },
     {
       name: "Bottle Loss",
-      value: statusData.bottle_loss
+      value: parseInt(statusData.bottle_loss)
     },
     {
       name: "Aviability",
-      value: statusData.aviability
+      value: `${Math.ceil(statusData.aviability)}%`
     },
     {
       name: "No. of Stop",
-      value: statusData.no_of_stop
+      value: parseInt(statusData.no_of_stop)
     },
     {
       name: "Performance",
-      value: statusData.performance
+      value: `${statusData.performance * 100}%`
     },
     {
       name: "Rejected Quantity",
-      value: statusData.rejected_quantity
+      value: parseInt(statusData.rejected_quantity)
     },
     {
       name: "Quality",
-      value: statusData.quality
+      value: `${Math.ceil(statusData.quality)}%`
     },
     {
       name: "Time Loss",
-      value: statusData.time_loss
+      value: parseFloat(statusData.time_loss)
+        .toFixed(2)
+        .toString()
+        .replace(".", ":")
     }
   ];
   const statusReport = () => {
@@ -82,7 +85,7 @@ const StatusReport = ({ statusData }) => {
               align="center"
               className={classes.value}
             >
-              {parseFloat(item.value).toFixed(2)}
+              {item.value}
             </Typography>
           </Paper>
         </Grid>
