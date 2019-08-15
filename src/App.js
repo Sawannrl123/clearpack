@@ -1,4 +1,5 @@
 import React, { PureComponent } from "react";
+import CssBaseline from "@material-ui/core/CssBaseline";
 import { connect } from "react-redux";
 import {
   BrowserRouter as Router,
@@ -18,8 +19,12 @@ import { fetchData } from "./main/actions";
 import { Dialog } from "./containers";
 
 class App extends PureComponent {
-  componentDidMount = async () => {
-    await this.props.fetchData();
+  componentDidMount = () => {
+    this.interval = setInterval(async () => await this.props.fetchData(), 6000);
+  };
+
+  componentWillUnmount = () => {
+    clearInterval(this.interval);
   };
 
   renderHeader = () => {
@@ -36,31 +41,34 @@ class App extends PureComponent {
 
   render = () => {
     return (
-      <ThemeProvider theme={theme}>
-        <Router>
-          <Route
-            render={() => {
-              return (
-                <div>
-                  {this.renderHeader()}
+      <React.Fragment>
+        <CssBaseline />
+        <ThemeProvider theme={theme}>
+          <Router>
+            <Route
+              render={() => {
+                return (
                   <div>
-                    <Switch>
-                      <Route exact path="/" component={SmartFactoryWorx} />
-                      <Route component={NotFound} />
-                    </Switch>
+                    {this.renderHeader()}
+                    <div>
+                      <Switch>
+                        <Route exact path="/" component={SmartFactoryWorx} />
+                        <Route component={NotFound} />
+                      </Switch>
+                    </div>
+                    <Dialog
+                      title={this.props.Dialog.data.title}
+                      action={this.props.Dialog.data.action}
+                    >
+                      {this.props.Dialog.data.body}
+                    </Dialog>
                   </div>
-                  <Dialog
-                    title={this.props.Dialog.data.title}
-                    action={this.props.Dialog.data.action}
-                  >
-                    {this.props.Dialog.data.body}
-                  </Dialog>
-                </div>
-              );
-            }}
-          />
-        </Router>
-      </ThemeProvider>
+                );
+              }}
+            />
+          </Router>
+        </ThemeProvider>
+      </React.Fragment>
     );
   };
 }
