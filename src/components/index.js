@@ -8,3 +8,5 @@ export { default as SmartFactoryWorx } from "./SmartFactoryWorx";
 export { default as Settings } from "./Settings";
 export { default as Dialog } from "./Dialog";
 export { default as StatusReport } from "./StatusReport";
+export { default as TableReport } from "./TableReport";
+export { default as ChartReport } from "./ChartReport";

@@ -1,4 +1,10 @@
-import { LOADING, ERROR, SUCCESS, FETCHED_DATA } from "./actionTypes";
+import {
+  LOADING,
+  ERROR,
+  SUCCESS,
+  FETCHED_DATA,
+  FETCHED_STOP_DATA
+} from "./actionTypes";
 
 export const loading = loading => dispatch => {
   dispatch({ type: LOADING, loading });
@@ -10,10 +16,6 @@ export const success = success => dispatch => {
 
 export const error = error => dispatch => {
   dispatch({ type: ERROR, error });
-};
-
-export const fetchedData = appData => dispatch => {
-  dispatch({ type: FETCHED_DATA, appData });
 };
 
 export const fetchData = () => dispatch => {
@@ -57,7 +59,7 @@ export const fetchData = () => dispatch => {
       await parseData(appData, dispatch);
     })
     .catch(error => {
-      dispatch({ type: ERROR, error });
+      console.error(error);
     });
 };
 
@@ -119,26 +121,41 @@ export const fetchStopData = (appData, dispatch) => {
     return null;
   });
 
-  //const currentDateTime = new Date().toISOString();
+  const currentDateTime = new Date().toISOString().split(".")[0];
 
-  Promise.all(
+  const stopData = Promise.all(
     skuData.map(async machine => {
+      let stop = {
+        [machine]: {}
+      };
       return APIS.map(async api => {
-        /*const url = `${api.url}/?startTime=${
-          appData[machine].sku.sku_start_time
-        }&endTime=${currentDateTime}`;*/
-        return await fetch(
-          `${api.url}/?startTime=2019-8-5T7:00:00&endTime=2019-8-7T12:00:00`
-        )
+        const url = `${api.url}?startTime=${
+          appData[machine].sku.sku_start_time.split(".")[0]
+        }&endTime=${currentDateTime}`;
+
+        return await fetch(url)
           .then(result => result.json())
           .then(data => {
-            appData[machine][api.name] = data;
-            return appData;
+            stop[machine] = {
+              ...stop[machine],
+              [api.name]: data
+            };
+            return stop;
           })
           .catch(err => console.error(err));
       });
     })
   );
+
+  stopData.then(value => {
+    return value.map(stop => {
+      return stop.map(val => {
+        return val.then(stopVal => {
+          dispatch({ type: FETCHED_STOP_DATA, stopVal });
+        });
+      });
+    });
+  });
 
   dispatch({ type: FETCHED_DATA, appData });
 };

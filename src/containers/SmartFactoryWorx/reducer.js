@@ -12,7 +12,12 @@ const initialState = {
     To: new Date()
   },
   User: "Admin",
-  view: "Event bar"
+  chartView: "event",
+  selectedDay: {
+    index: 0,
+    value: new Date().toLocaleDateString()
+  },
+  tableView: "count_wise"
 };
 
 export default (state = initialState, action) => {
@@ -32,6 +37,21 @@ export default (state = initialState, action) => {
           ...state.date,
           [action.key]: action.date
         }
+      };
+    case actions.HANDLE_CHART_VIEW_CHANGE:
+      return {
+        ...state,
+        chartView: action.view
+      };
+    case actions.HANDLE_TABLE_VIEW_CHANGE:
+      return {
+        ...state,
+        tableView: action.view
+      };
+    case actions.HANDLE_DAY_CHANGE:
+      return {
+        ...state,
+        selectedDay: action.day
       };
     default:
       return state;

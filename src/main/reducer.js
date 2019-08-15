@@ -4,7 +4,8 @@ const initialState = {
   isLoading: false,
   error: null,
   success: null,
-  appData: null
+  appData: null,
+  stopData: null
 };
 
 export default (state = initialState, action) => {
@@ -34,6 +35,14 @@ export default (state = initialState, action) => {
         appData: {
           ...state.appData,
           ...action.appData
+        }
+      };
+    case actions.FETCHED_STOP_DATA:
+      return {
+        ...state,
+        stopData: {
+          ...state.stopData,
+          ...action.stopVal
         }
       };
     default:

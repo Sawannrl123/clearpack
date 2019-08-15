@@ -1,7 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
-//import { useTheme } from "@material-ui/styles";
 import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
@@ -27,11 +26,13 @@ const useStyles = makeStyles(theme => ({
 
 const StatusReport = ({ statusData }) => {
   const classes = useStyles();
-  //const theme = useTheme();
   const data = [
     {
       name: "OEE",
-      value: `${statusData.oee * 100}%`
+      value: `${parseFloat(statusData.oee)
+        .toFixed(2)
+        .toString()
+        .replace(".00", "")}%`
     },
     {
       name: "Bottle Loss",
@@ -39,7 +40,10 @@ const StatusReport = ({ statusData }) => {
     },
     {
       name: "Aviability",
-      value: `${Math.ceil(statusData.aviability)}%`
+      value: `${parseFloat(statusData.aviability)
+        .toFixed(2)
+        .toString()
+        .replace(".00", "")}%`
     },
     {
       name: "No. of Stop",
@@ -47,7 +51,10 @@ const StatusReport = ({ statusData }) => {
     },
     {
       name: "Performance",
-      value: `${statusData.performance * 100}%`
+      value: `${parseFloat(statusData.performance)
+        .toFixed(2)
+        .toString()
+        .replace(".00", "")}%`
     },
     {
       name: "Rejected Quantity",
@@ -55,7 +62,10 @@ const StatusReport = ({ statusData }) => {
     },
     {
       name: "Quality",
-      value: `${Math.ceil(statusData.quality)}%`
+      value: `${parseFloat(statusData.quality)
+        .toFixed(2)
+        .toString()
+        .replace(".00", "")}%`
     },
     {
       name: "Time Loss",

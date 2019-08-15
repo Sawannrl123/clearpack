@@ -3,7 +3,12 @@ import { makeStyles } from "@material-ui/core/styles";
 import { useTheme } from "@material-ui/styles";
 import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
-import { SiteContainer, StatusReport } from "../../components";
+import {
+  SiteContainer,
+  StatusReport,
+  TableReport,
+  ChartReport
+} from "../../components";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Divider from "@material-ui/core/Divider";
 const useStyles = makeStyles(theme => ({
@@ -35,15 +40,23 @@ const useStyles = makeStyles(theme => ({
     padding: theme.spacing(1)
   },
   matchHeight: {
-    height: "calc(100vh - 140px)",
-    overflow: "auto"
+    [theme.breakpoints.up("md")]: {
+      height: "calc(100vh - 140px)",
+      overflow: "hidden"
+    }
   },
   innerHeight: {
-    height: "50%",
-    overflow: "auto"
+    [theme.breakpoints.up("md")]: {
+      height: "50%",
+      overflow: "hidden"
+    },
+    padding: theme.spacing(1)
   },
   StatusReport: {
     padding: theme.spacing(2, 1),
+    [theme.breakpoints.up("md")]: {
+      overflow: "hidden"
+    },
     overflow: "hidden"
   }
 }));
@@ -74,10 +87,21 @@ const SmartFactoryWorx = props => {
             <Divider className={classes.divider} />
             <div className={classes.spacing}>
               <Grid container spacing={2}>
-                <Grid item sm={12} md={8}>
+                <Grid item sm={12} md={8} style={{ maxWidth: "100%" }}>
                   <div className={classes.matchHeight}>
-                    <div className={classes.innerHeight}>sawan </div>
-                    <div className={classes.innerHeight}>nirala </div>
+                    <div className={classes.innerHeight}>
+                      <TableReport tableData={props.stopData || {}} />
+                    </div>
+                    <div className={classes.innerHeight}>
+                      <ChartReport
+                        chartData={props.stopData || {}}
+                        handleDialogToggle={props.handleDialogToggle}
+                        handleChartViewChange={props.handleChartViewChange}
+                        chartView={props.chartView}
+                        handleDayChange={props.handleDayChange}
+                        selectedDay={props.selectedDay}
+                      />
+                    </div>
                   </div>
                 </Grid>
                 <Grid item sm={12} md={4}>
