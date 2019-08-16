@@ -66,9 +66,18 @@ export const fetchData = () => dispatch => {
 export const parseData = async (data, dispatch) => {
   const parsedData = {};
   let machineName = null;
+  let prevItem = null;
   await data.map(item => {
     if (item && item.hasOwnProperty("shift")) {
       parsedData[item.machine] = item;
+      if (prevItem === null) {
+        parsedData[item.machine]["count_difference"] = item.total_count;
+        prevItem = item;
+      } else {
+        parsedData[item.machine]["count_difference"] = `${prevItem.total_count -
+          item.total_count}_${item.total_count}`;
+        prevItem = item;
+      }
     }
     if (
       item &&
@@ -76,6 +85,9 @@ export const parseData = async (data, dispatch) => {
       parsedData.hasOwnProperty(item.machine_name)
     ) {
       parsedData[item.machine_name]["sku"] = item;
+      parsedData[item.machine_name]["target"] = `${parseFloat(
+        (item.current_count / item.target_quanity) * 100
+      ).toFixed(2)}%`;
     }
     if (item && item.length) {
       item.map(value => {
@@ -90,14 +102,10 @@ export const parseData = async (data, dispatch) => {
           value.hasOwnProperty("count_wise") ||
           value.hasOwnProperty("time_wise")
         ) {
-          if (value.hasOwnProperty("active_alarm")) {
-            parsedData[machineName]["alarm"] = value;
-          } else {
-            parsedData[machineName]["fault"] = {
-              ...parsedData[machineName]["fault"],
-              ...value
-            };
-          }
+          parsedData[machineName] = {
+            ...parsedData[machineName],
+            ...value
+          };
         }
         return value;
       });

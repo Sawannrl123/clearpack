@@ -8,7 +8,7 @@ import {
   withRouter
 } from "react-router-dom";
 import { ThemeProvider } from "@material-ui/styles";
-import { Header, NotFound, Settings } from "./components";
+import { Header, NotFound, Settings, SiteLoader } from "./components";
 import { SmartFactoryWorx } from "./containers";
 import { theme } from "./theme";
 import {
@@ -27,17 +27,17 @@ class App extends PureComponent {
     const { isMounted } = this.state;
     if (!isMounted) {
       await this.props.fetchData();
-      // this.setState(
-      //   {
-      //     isMounted: true
-      //   },
-      //   () => {
-      //     this.interval = setInterval(
-      //       async () => await this.props.fetchData(),
-      //       6000
-      //     );
-      //   }
-      // );
+      this.setState(
+        {
+          isMounted: true
+        },
+        () => {
+          this.interval = setInterval(
+            async () => await this.props.fetchData(),
+            10000
+          );
+        }
+      );
     }
   };
 
@@ -80,6 +80,7 @@ class App extends PureComponent {
                     >
                       {this.props.Dialog.data.body}
                     </Dialog>
+                    {this.props.Main.isLoading && <SiteLoader />}
                   </div>
                 );
               }}

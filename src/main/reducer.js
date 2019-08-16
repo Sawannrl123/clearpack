@@ -13,7 +13,7 @@ export default (state = initialState, action) => {
     case actions.LOADING:
       return {
         ...state,
-        isLoading: action.loading ? action.loading : true
+        isLoading: action.loading ? action.loading : !state.isLoading
       };
     case actions.ERROR:
       return {

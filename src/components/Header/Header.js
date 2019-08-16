@@ -8,7 +8,6 @@ import { Logo } from "../../assets";
 import { SITE_NAME } from "../../utils";
 
 const useStyles = makeStyles(theme => {
-  console.log(theme);
   return {
     root: {
       flexGrow: 1,
@@ -51,7 +50,6 @@ const Header = ({ children, logo }) => {
               <img src={logo} alt={SITE_NAME} className={classes.logo} />
             </div>
             {children}
-            
           </Toolbar>
         </Container>
       </AppBar>

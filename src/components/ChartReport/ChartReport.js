@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
 import { useTheme } from "@material-ui/styles";
@@ -47,7 +47,7 @@ TabPanel.propTypes = {
 const useStyles = makeStyles(theme => ({
   root: {},
   buttonGroup: {
-    [theme.breakpoints.up("sm")]: {
+    [theme.breakpoints.up("md")]: {
       transform: "rotate(270deg)",
       WebkitTransform: "rotate(270deg)",
       msTransform: "rotate(270deg)",
@@ -117,11 +117,11 @@ const ChartReport = ({
   handleSubmitComment,
   handleRequestVideo,
   chartView,
-  selectedDay
+  selectedDay,
+  loading
 }) => {
   const classes = useStyles();
   const theme = useTheme();
-  const [values, setValues] = useState("");
   const parsedMachine =
     chartData &&
     Object.keys(chartData).filter(machine => {
@@ -133,10 +133,6 @@ const ChartReport = ({
     Object.keys(chartData).filter(machine => {
       return chartData[machine].hasOwnProperty("pie");
     });
-
-  const handleChange = event => {
-    setValues(event.target.value);
-  };
 
   const colors = {
     green_stop: "#0CBA5B",
@@ -239,11 +235,40 @@ const ChartReport = ({
   };
 
   const submitComment = data => {
+    loading(true);
+    const value = document.getElementById("stop-comment").value;
     const comment = {
-      message: values,
+      message: value,
       info: data
     };
-    handleSubmitComment(comment);
+    handleSubmitComment(comment)
+      .then(() => {
+        loading(false);
+        const popUpData = {
+          title: "Comment Sucessfully Posted",
+          body: (
+            <Typography variant="h5" component="h5" align="center">
+              Comment Sucessfully Posted! Your feedback is valuable to us keep
+              commenting. Thanks
+            </Typography>
+          ),
+          action: (
+            <div>
+              <Button
+                className={classes.button}
+                onClick={() => handleDialogToggle(false, null)}
+              >
+                Close
+              </Button>
+            </div>
+          )
+        };
+        handleDialogToggle(true, popUpData);
+      })
+      .catch(error => {
+        loading(false);
+        console.error(error);
+      });
   };
 
   const openCommentPopup = data => {
@@ -254,8 +279,6 @@ const ChartReport = ({
           id="stop-comment"
           label="Comment"
           className={classes.commentField}
-          value={values}
-          onChange={handleChange}
           margin="normal"
           variant="outlined"
           multiline
@@ -284,7 +307,26 @@ const ChartReport = ({
   };
 
   const openVideoPopup = data => {
-    handleRequestVideo(data);
+    loading(true);
+    handleRequestVideo(data)
+      .then(video => {
+        const popUpData = {
+          title: "Stop Video",
+          body: (
+            <video width="100%" controls>
+              <source src={video} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          ),
+          action: null
+        };
+        loading(false);
+        handleDialogToggle(true, popUpData);
+      })
+      .catch(error => {
+        loading(false);
+        console.error(error);
+      });
   };
 
   const renderTabBody = (eventData, day) => {
@@ -447,7 +489,11 @@ const ChartReport = ({
   };
 
   const renderChart = () => {
-    return chartView === "event" ? renderEventBar() : renderPieChart();
+    return (
+      <Paper className={classes.days}>
+        {chartView === "event" ? renderEventBar() : renderPieChart()}
+      </Paper>
+    );
   };
 
   return (
@@ -455,7 +501,7 @@ const ChartReport = ({
       <Grid
         item
         xs={12}
-        sm={2}
+        md={2}
         style={{
           alignSelf: "center",
           display: "flex",
@@ -464,7 +510,7 @@ const ChartReport = ({
       >
         {renderButtons()}
       </Grid>
-      <Grid item xs={12} sm={10} style={{ height: "100%" }}>
+      <Grid item xs={12} md={10} style={{ height: "100%" }}>
         {renderChart()}
       </Grid>
     </Grid>
@@ -478,6 +524,7 @@ ChartReport.propTypes = {
   handleDayChange: PropTypes.func.isRequired,
   handleSubmitComment: PropTypes.func.isRequired,
   handleRequestVideo: PropTypes.func.isRequired,
+  loading: PropTypes.func.isRequired,
   chartView: PropTypes.string.isRequired,
   selectedDay: PropTypes.object.isRequired
 };
@@ -489,6 +536,7 @@ ChartReport.defaultProps = {
   handleDayChange: () => {},
   handleSubmitComment: () => {},
   handleRequestVideo: () => {},
+  loading: () => {},
   chartView: "event",
   selectedDay: {}
 };

@@ -10,3 +10,4 @@ export { default as Dialog } from "./Dialog";
 export { default as StatusReport } from "./StatusReport";
 export { default as TableReport } from "./TableReport";
 export { default as ChartReport } from "./ChartReport";
+export { default as SiteLoader } from "./SiteLoader";

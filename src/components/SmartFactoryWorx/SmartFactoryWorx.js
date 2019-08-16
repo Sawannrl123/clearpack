@@ -58,6 +58,11 @@ const useStyles = makeStyles(theme => ({
       overflow: "hidden"
     },
     overflow: "hidden"
+  },
+  status: {
+    [theme.breakpoints.down("sm")]: {
+      maxWidth: "100%"
+    }
   }
 }));
 
@@ -80,10 +85,14 @@ const SmartFactoryWorx = props => {
             <Divider className={classes.divider} />
             <div className={classes.spacing}>
               <Grid container spacing={2}>
-                <Grid item sm={12} md={8}>
+                <Grid item sm={12} md={8} className={classes.status}>
                   <div className={classes.matchHeight}>
                     <div className={classes.innerHeight}>
-                      <TableReport tableData={props.stopData || {}} />
+                      <TableReport
+                        tableData={props.appData || {}}
+                        tableView={props.tableView}
+                        handleTableViewChange={props.handleTableViewChange}
+                      />
                     </div>
                     <div className={classes.innerHeight}>
                       <ChartReport
@@ -95,6 +104,7 @@ const SmartFactoryWorx = props => {
                         selectedDay={props.selectedDay}
                         handleSubmitComment={props.handleSubmitComment}
                         handleRequestVideo={props.handleRequestVideo}
+                        loading={props.loading}
                       />
                     </div>
                   </div>

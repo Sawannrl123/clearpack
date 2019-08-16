@@ -1,6 +1,7 @@
 import { connect } from "react-redux";
 import { SmartFactoryWorx } from "../../components";
 import { handleDialogToggle } from "../Dialog/actions";
+import { loading } from "../../main/actions";
 import {
   handleChartViewChange,
   handleTableViewChange,
@@ -16,6 +17,7 @@ const mapStateToProps = (state, ownProps) => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+  loading: value => dispatch(loading(value)),
   handleDialogToggle: (open, data) => dispatch(handleDialogToggle(open, data)),
   handleChartViewChange: view => dispatch(handleChartViewChange(view)),
   handleTableViewChange: view => dispatch(handleTableViewChange(view)),

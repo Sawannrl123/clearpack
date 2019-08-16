@@ -3,8 +3,8 @@ import * as actions from "./actionTypes";
 const initialState = {
   open: false,
   data: {
-    title: "Dialog",
-    body: "This is a modal",
+    title: null,
+    body: "",
     action: null
   }
 };
