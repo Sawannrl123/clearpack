@@ -17,7 +17,8 @@ const initialState = {
     index: 0,
     value: new Date().toLocaleDateString()
   },
-  tableView: "count_wise"
+  tableView: "count_wise",
+  message: ""
 };
 
 export default (state = initialState, action) => {

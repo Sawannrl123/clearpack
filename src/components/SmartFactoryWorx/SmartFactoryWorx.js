@@ -64,13 +64,6 @@ const useStyles = makeStyles(theme => ({
 const SmartFactoryWorx = props => {
   const classes = useStyles();
   const theme = useTheme();
-
-  //console.log(props);
-
-  /*const data = {
-    title: "Modal Testing",
-    body: "This is a dummy modal"
-  };*/
   return (
     <React.Fragment>
       {props.appData !== null ? (
@@ -87,7 +80,7 @@ const SmartFactoryWorx = props => {
             <Divider className={classes.divider} />
             <div className={classes.spacing}>
               <Grid container spacing={2}>
-                <Grid item sm={12} md={8} style={{ maxWidth: "100%" }}>
+                <Grid item sm={12} md={8}>
                   <div className={classes.matchHeight}>
                     <div className={classes.innerHeight}>
                       <TableReport tableData={props.stopData || {}} />
@@ -100,6 +93,8 @@ const SmartFactoryWorx = props => {
                         chartView={props.chartView}
                         handleDayChange={props.handleDayChange}
                         selectedDay={props.selectedDay}
+                        handleSubmitComment={props.handleSubmitComment}
+                        handleRequestVideo={props.handleRequestVideo}
                       />
                     </div>
                   </div>

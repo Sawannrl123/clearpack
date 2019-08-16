@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 
 const SiteDialog = ({ open, handleDialogToggle, title, action, children }) => {
@@ -16,9 +15,7 @@ const SiteDialog = ({ open, handleDialogToggle, title, action, children }) => {
         aria-labelledby="scroll-dialog-title"
       >
         {title && <DialogTitle id="scroll-dialog-title">{title}</DialogTitle>}
-        <DialogContent dividers>
-          <DialogContentText>{children}</DialogContentText>
-        </DialogContent>
+        <DialogContent dividers>{children}</DialogContent>
         {action && <DialogActions>{action}</DialogActions>}
       </Dialog>
     </div>

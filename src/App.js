@@ -27,17 +27,17 @@ class App extends PureComponent {
     const { isMounted } = this.state;
     if (!isMounted) {
       await this.props.fetchData();
-      this.setState(
-        {
-          isMounted: true
-        },
-        () => {
-          this.interval = setInterval(
-            async () => await this.props.fetchData(),
-            6000
-          );
-        }
-      );
+      // this.setState(
+      //   {
+      //     isMounted: true
+      //   },
+      //   () => {
+      //     this.interval = setInterval(
+      //       async () => await this.props.fetchData(),
+      //       6000
+      //     );
+      //   }
+      // );
     }
   };
 
