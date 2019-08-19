@@ -7,12 +7,8 @@ import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import ButtonGroup from "@material-ui/core/ButtonGroup";
 import Paper from "@material-ui/core/Paper";
-import Tabs from "@material-ui/core/Tabs";
 import { Doughnut } from "react-chartjs-2";
-import Tab from "@material-ui/core/Tab";
-import SwipeableViews from "react-swipeable-views";
 import Box from "@material-ui/core/Box";
-import Divider from "@material-ui/core/Divider";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -65,17 +61,7 @@ const useStyles = makeStyles(theme => ({
   },
   days: {
     height: "100%",
-    overflow: "hidden"
-  },
-  divider: {
-    backgroundColor: theme.palette.grey[300]
-  },
-  swipeable: {
-    height: "calc(100% - 48px)",
-    overflowY: "auto"
-  },
-  simple: {
-    padding: theme.spacing(2)
+    overflow: "auto"
   },
   title: {
     textTransform: "capitalize",
@@ -99,13 +85,15 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: "#FFFaFA",
     cursor: "pointer"
   },
-  commentField: {},
   pie: {
     height: "100%",
     padding: theme.spacing(2)
   },
   pieLabel: {
     marginTop: theme.spacing(2)
+  },
+  cell: {
+    padding: theme.spacing(1)
   }
 }));
 
@@ -113,11 +101,9 @@ const ChartReport = ({
   chartData,
   handleDialogToggle,
   handleChartViewChange,
-  handleDayChange,
   handleSubmitComment,
   handleRequestVideo,
   chartView,
-  selectedDay,
   loading
 }) => {
   const classes = useStyles();
@@ -226,14 +212,6 @@ const ChartReport = ({
     );
   };
 
-  const dayChange = (event, value) => {
-    event.persist();
-    handleDayChange({
-      index: value,
-      value: event.target.innerText
-    });
-  };
-
   const submitComment = data => {
     loading(true);
     const value = document.getElementById("stop-comment").value;
@@ -329,17 +307,10 @@ const ChartReport = ({
       });
   };
 
-  const renderTabBody = (eventData, day) => {
-    const currentDay = new Date(day).getDay();
+  const renderTabBody = eventData => {
     return parsedMachine.map((machine, i) => {
       return (
-        <TableRow
-          key={i}
-          style={{
-            backgroundColor:
-              i % 2 === 0 ? theme.palette.grey[300] : theme.palette.grey[400]
-          }}
-        >
+        <TableRow key={i}>
           <TableCell
             component="th"
             scope="row"
@@ -349,61 +320,53 @@ const ChartReport = ({
             {machine}
           </TableCell>
           {eventData.map((event, index) => {
-            const date = new Date(event.start_time);
-            const compareDay = date.getDay();
-            if (compareDay === currentDay) {
-              const title = event.stop_name.replace("_", " ");
-              return (
-                <TableCell key={index}>
-                  <div
-                    className={classes.status}
-                    style={{
-                      backgroundColor: colors[event.stop_name]
-                    }}
-                    title={`${title.charAt(0).toUpperCase()}${title.slice(1)}`}
-                  >
-                    {event.stop_name === "not_stop" && (
-                      <React.Fragment>
-                        <div
-                          className={classes.comment}
-                          onClick={e => {
-                            openCommentPopup(event);
-                          }}
-                          title="Comment on Stop"
-                        />
-                        <div
-                          className={classes.video}
-                          onClick={e => {
-                            openVideoPopup(event);
-                          }}
-                          title="Open Stop Video"
-                        />
-                      </React.Fragment>
-                    )}
-                  </div>
-                </TableCell>
-              );
-            }
-            return null;
+            return (
+              <TableCell key={index} className={classes.cell}>
+                <div
+                  className={classes.status}
+                  style={{
+                    backgroundColor: colors[event.stop_name],
+                    border: `1px solid ${theme.palette.grey[300]}`,
+                    minWidth: 25
+                  }}
+                  title={`${new Date(
+                    event.start_time
+                  ).toLocaleString()} - ${new Date(
+                    event.end_time
+                  ).toLocaleString()}`}
+                >
+                  {event.stop_name === "not_stop" && (
+                    <React.Fragment>
+                      <div
+                        className={classes.comment}
+                        onClick={e => {
+                          openCommentPopup(event);
+                        }}
+                      />
+                      <div
+                        className={classes.video}
+                        onClick={e => {
+                          openVideoPopup(event);
+                        }}
+                      />
+                    </React.Fragment>
+                  )}
+                </div>
+              </TableCell>
+            );
           })}
         </TableRow>
       );
     });
   };
 
-  const renderTabHeader = (eventData, day) => {
-    const currentDay = new Date(day).getDay();
+  const renderTabHeader = eventData => {
     return eventData.map((event, i) => {
-      const date = new Date(event.start_time);
-      const compareDay = date.getDay();
-      if (compareDay === currentDay) {
-        const from = date.toLocaleTimeString();
-        const to = new Date(event.end_time).toLocaleTimeString();
-        return (
-          <TableCell key={i} align="center">{`${from} - ${to}`}</TableCell>
-        );
-      }
-      return null;
+      return (
+        <TableCell key={i} align="center">
+          {" "}
+        </TableCell>
+      );
     });
   };
 
@@ -419,71 +382,20 @@ const ChartReport = ({
       const endDate = new Date(eventData[eventData.length - 1].end_time);
       const days = getDateArray(startDate, endDate);
       days.push(new Date());
-      if (days.length > 1) {
-        return (
-          <Paper className={classes.days}>
-            <Tabs
-              value={selectedDay.index}
-              indicatorColor="primary"
-              textColor="primary"
-              variant="scrollable"
-              scrollButtons="auto"
-              onChange={(event, value) => dayChange(event, value)}
-            >
-              {days.map((day, index) => {
-                return (
-                  <Tab
-                    value={index}
-                    label={day.toLocaleDateString()}
-                    key={index}
-                  />
-                );
-              })}
-            </Tabs>
-            <Divider className={classes.divider} />
-            <SwipeableViews
-              axis="x"
-              index={selectedDay.index}
-              onChangeIndex={value => handleDayChange(value)}
-              className={classes.swipeable}
-            >
-              {days.map((day, index) => {
-                return (
-                  <TabPanel
-                    value={{
-                      index,
-                      value: day.toLocaleDateString()
-                    }}
-                    index={index}
-                    dir="ltr"
-                    key={index}
-                  >
-                    {renderTableContent(eventData, day)}
-                  </TabPanel>
-                );
-              })}
-            </SwipeableViews>
-          </Paper>
-        );
-      }
-      return (
-        <Paper className={classes.simple}>
-          {renderTableContent(eventData, new Date())}
-        </Paper>
-      );
+      return renderTableContent(eventData);
     }
   };
 
-  const renderTableContent = (eventData, day) => {
+  const renderTableContent = eventData => {
     return (
       <Table className={classes.table} size="small">
         <TableHead>
           <TableRow>
             <TableCell key="blank"> </TableCell>
-            {renderTabHeader(eventData, day)}
+            {renderTabHeader(eventData)}
           </TableRow>
         </TableHead>
-        <TableBody>{renderTabBody(eventData, day)}</TableBody>
+        <TableBody>{renderTabBody(eventData)}</TableBody>
       </Table>
     );
   };

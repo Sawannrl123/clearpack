@@ -13,12 +13,14 @@ import {
   TimePicker
 } from "@material-ui/pickers";
 import { ConfigChip } from "../../components";
+import { Button } from "@material-ui/core";
 
 const useStyles = makeStyles(theme => {
   return {
     root: {
       display: "flex",
-      flexWrap: "wrap"
+      flexWrap: "wrap",
+      position: "relative"
     },
     setting: {
       width: "100%",
@@ -47,11 +49,19 @@ const useStyles = makeStyles(theme => {
           width: 100
         }
       }
+    },
+    event: {
+      textTransform: "capitalize",
+      [theme.breakpoints.up("md")]: {
+        position: "absolute",
+        right: "-55px",
+        top: "15px"
+      }
     }
   };
 });
 
-const Settings = ({ data, handleDateChange, handleChangeItem }) => {
+const Settings = ({ data, handleDateChange, handleChangeItem, goToEvent }) => {
   const classes = useStyles();
   const theme = useTheme();
 
@@ -74,7 +84,6 @@ const Settings = ({ data, handleDateChange, handleChangeItem }) => {
     const selectedDate = data.date[key];
     const selectedItem = data.shiftData;
     if (
-      selectedItem.value === "Period" ||
       selectedItem.value === "Current Shift" ||
       selectedItem.value === "Current Day"
     ) {
@@ -192,6 +201,9 @@ const Settings = ({ data, handleDateChange, handleChangeItem }) => {
           </ConfigChip>
         );
       })}
+      <Button onClick={goToEvent} className={classes.event}>
+        Event
+      </Button>
     </div>
   );
 };

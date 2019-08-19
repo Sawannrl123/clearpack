@@ -3,12 +3,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { useTheme } from "@material-ui/styles";
 import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
-import {
-  SiteContainer,
-  StatusReport,
-  TableReport,
-  ChartReport
-} from "../../components";
+import { SiteContainer, StatusReport, TableReport } from "../../components";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Divider from "@material-ui/core/Divider";
 const useStyles = makeStyles(theme => ({
@@ -87,26 +82,11 @@ const SmartFactoryWorx = props => {
               <Grid container spacing={2}>
                 <Grid item sm={12} md={8} className={classes.status}>
                   <div className={classes.matchHeight}>
-                    <div className={classes.innerHeight}>
-                      <TableReport
-                        tableData={props.appData || {}}
-                        tableView={props.tableView}
-                        handleTableViewChange={props.handleTableViewChange}
-                      />
-                    </div>
-                    <div className={classes.innerHeight}>
-                      <ChartReport
-                        chartData={props.stopData || {}}
-                        handleDialogToggle={props.handleDialogToggle}
-                        handleChartViewChange={props.handleChartViewChange}
-                        chartView={props.chartView}
-                        handleDayChange={props.handleDayChange}
-                        selectedDay={props.selectedDay}
-                        handleSubmitComment={props.handleSubmitComment}
-                        handleRequestVideo={props.handleRequestVideo}
-                        loading={props.loading}
-                      />
-                    </div>
+                    <TableReport
+                      tableData={props.appData || {}}
+                      tableView={props.tableView}
+                      handleTableViewChange={props.handleTableViewChange}
+                    />
                   </div>
                 </Grid>
                 <Grid item sm={12} md={4}>

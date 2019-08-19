@@ -31,9 +31,9 @@ export const fetchData = () => dispatch => {
 
   const APIS = [
     { name: "filler", url: REACT_APP_FILLER_API },
+    { name: "induction", url: REACT_APP_INDUCTION_API },
     { name: "labeller", url: REACT_APP_LABELLER_API },
     { name: "shrink", url: REACT_APP_SHRINK_API },
-    { name: "induction", url: REACT_APP_INDUCTION_API },
     { name: "sku", url: REACT_APP_SKU_API },
     { name: "fault", url: REACT_APP_FAULT_API },
     { name: "alarm", url: REACT_APP_ALARM_API }
@@ -112,11 +112,14 @@ export const parseData = async (data, dispatch) => {
     }
     return item;
   });
-  return await fetchStopData(parsedData, dispatch);
+  dispatch({ type: FETCHED_DATA, appData: parsedData });
 };
 
-export const fetchStopData = (appData, dispatch) => {
+export const fetchStopData = () => (dispatch, getState) => {
   const { REACT_APP_EVENT_BAR_API, REACT_APP_PIE_CHART_API } = process.env;
+
+  const { appData } = getState().Main;
+
   const APIS = [
     { name: "event", url: REACT_APP_EVENT_BAR_API },
     { name: "pie", url: REACT_APP_PIE_CHART_API }
@@ -164,6 +167,4 @@ export const fetchStopData = (appData, dispatch) => {
       });
     });
   });
-
-  dispatch({ type: FETCHED_DATA, appData });
 };

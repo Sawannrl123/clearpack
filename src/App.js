@@ -9,14 +9,13 @@ import {
 } from "react-router-dom";
 import { ThemeProvider } from "@material-ui/styles";
 import { Header, NotFound, Settings, SiteLoader } from "./components";
-import { SmartFactoryWorx } from "./containers";
+import { SmartFactoryWorx, EventPage, Dialog } from "./containers";
 import { theme } from "./theme";
 import {
   handleChangeItem,
   handleDateChange
 } from "./containers/SmartFactoryWorx/actions";
 import { fetchData } from "./main/actions";
-import { Dialog } from "./containers";
 
 class App extends PureComponent {
   state = {
@@ -45,6 +44,10 @@ class App extends PureComponent {
     clearInterval(this.interval);
   };
 
+  goToEvent = () => {
+    this.props.history.push("/event");
+  };
+
   renderHeader = () => {
     return (
       <Header>
@@ -52,6 +55,7 @@ class App extends PureComponent {
           data={this.props.SmartFactoryWorx}
           handleChangeItem={this.props.handleChangeItem}
           handleDateChange={this.props.handleDateChange}
+          goToEvent={this.goToEvent}
         />
       </Header>
     );
@@ -71,6 +75,7 @@ class App extends PureComponent {
                     <div>
                       <Switch>
                         <Route exact path="/" component={SmartFactoryWorx} />
+                        <Route exact path="/event" component={EventPage} />
                         <Route component={NotFound} />
                       </Switch>
                     </div>
