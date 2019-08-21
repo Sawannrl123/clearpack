@@ -36,7 +36,7 @@ const useStyles = makeStyles(theme => ({
   },
   matchHeight: {
     [theme.breakpoints.up("md")]: {
-      height: "calc(100vh - 140px)",
+      height: "calc(100vh - 128px)",
       overflow: "hidden"
     }
   },
@@ -48,7 +48,6 @@ const useStyles = makeStyles(theme => ({
     padding: theme.spacing(1)
   },
   StatusReport: {
-    padding: theme.spacing(2, 1),
     [theme.breakpoints.up("md")]: {
       overflow: "hidden"
     },
@@ -58,6 +57,11 @@ const useStyles = makeStyles(theme => ({
     [theme.breakpoints.down("sm")]: {
       maxWidth: "100%"
     }
+  },
+  title: {
+    padding: theme.spacing(1),
+    fontSize: "15px",
+    lineHeight: 1
   }
 }));
 
@@ -73,23 +77,24 @@ const SmartFactoryWorx = props => {
               variant="h6"
               color="inherit"
               align="center"
-              className={classes.spacing}
+              className={classes.title}
             >
               Mundra 5I/2I - 5000ml
             </Typography>
             <Divider className={classes.divider} />
             <div className={classes.spacing}>
               <Grid container spacing={2}>
-                <Grid item sm={12} md={8} className={classes.status}>
+                <Grid item sm={12} md={10} className={classes.status}>
                   <div className={classes.matchHeight}>
                     <TableReport
                       tableData={props.appData || {}}
                       tableView={props.tableView}
                       handleTableViewChange={props.handleTableViewChange}
+                      handleDialogToggle={props.handleDialogToggle}
                     />
                   </div>
                 </Grid>
-                <Grid item sm={12} md={4}>
+                <Grid item sm={12} md={2}>
                   <div
                     className={`${classes.matchHeight} ${classes.StatusReport}`}
                   >

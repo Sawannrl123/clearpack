@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { upperFirst } from "lodash";
 import { makeStyles } from "@material-ui/core/styles";
 import { useTheme } from "@material-ui/styles";
 import Typography from "@material-ui/core/Typography";
@@ -15,6 +16,15 @@ import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import TextField from "@material-ui/core/TextField";
+import OutlinedInput from "@material-ui/core/OutlinedInput";
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import FormControl from "@material-ui/core/FormControl";
+import Select from "@material-ui/core/Select";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogTitle from "@material-ui/core/DialogTitle";
 import { getDateArray } from "../../utils";
 
 const TabPanel = props => {
@@ -41,14 +51,28 @@ TabPanel.propTypes = {
 };
 
 const useStyles = makeStyles(theme => ({
-  root: {},
+  root: {
+    height: "100%",
+    position: "relative",
+    textAlign: "center",
+    [theme.breakpoints.up("md")]: {
+      width: "calc(100% - 50px)",
+      marginLeft: "50px"
+    }
+  },
   buttonGroup: {
+    marginBottom: theme.spacing(1),
     [theme.breakpoints.up("md")]: {
       transform: "rotate(270deg)",
       WebkitTransform: "rotate(270deg)",
       msTransform: "rotate(270deg)",
       MozTransform: "rotate(270deg)",
-      OTransform: "rotate(270deg)"
+      OTransform: "rotate(270deg)",
+      position: "absolute",
+      top: "50%",
+      left: "-125px",
+      marginTop: "-17px",
+      marginBottom: 0
     }
   },
   button: {
@@ -94,6 +118,9 @@ const useStyles = makeStyles(theme => ({
   },
   cell: {
     padding: theme.spacing(1)
+  },
+  fullWidth: {
+    width: "100%"
   }
 }));
 
@@ -106,6 +133,14 @@ const ChartReport = ({
   chartView,
   loading
 }) => {
+  const inputLabel = React.useRef(null);
+  const [open, setOpen] = React.useState(false);
+  const [comment, setComment] = React.useState({
+    message: "",
+    category: "",
+    partList: "",
+    stop: null
+  });
   const classes = useStyles();
   const theme = useTheme();
   const parsedMachine =
@@ -120,12 +155,60 @@ const ChartReport = ({
       return chartData[machine].hasOwnProperty("pie");
     });
 
+  const handleClickOpen = (name, data) => () => {
+    setOpen(true);
+    setComment({ ...comment, [name]: data });
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    resetComment();
+  };
+
+  const resetComment = () => {
+    setComment({
+      message: "",
+      category: "",
+      partList: "",
+      stop: null
+    });
+  };
+
   const colors = {
     green_stop: "#0CBA5B",
     fault_stop: "#A9DBDE",
     not_stop: "#E60748",
     block_stop: "#BEBEBE",
     waiting_time: "#FEF729"
+  };
+
+  const handleChange = name => event => {
+    setComment({ ...comment, [name]: event.target.value });
+  };
+
+  const renderCommentDialog = () => {
+    return (
+      <Dialog
+        fullWidth
+        maxWidth="sm"
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="comment-dialog"
+      >
+        <form onSubmit={submitComment}>
+          <DialogTitle id="comment-dialog">Comment on this stop</DialogTitle>
+          <DialogContent>{renderCommentBody()}</DialogContent>
+          <DialogActions>
+            <Button className={classes.button} onClick={handleClose}>
+              Close
+            </Button>
+            <Button className={classes.button} type="submit">
+              Submit
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+    );
   };
 
   const renderButtons = () => (
@@ -165,7 +248,7 @@ const ChartReport = ({
         <Grid container>
           {parsedPieMachine.map((machine, index) => {
             return (
-              <Grid item key={index}>
+              <Grid item xs={12} sm={6} md={4} key={index}>
                 {renderDoughnutChart(machine)}
               </Grid>
             );
@@ -180,7 +263,7 @@ const ChartReport = ({
 
     const labels = pickedData.map(label => {
       const title = label._id.replace("_", " ");
-      return `${title.charAt(0).toUpperCase()}${title.slice(1)}`;
+      return `${upperFirst(title)}`;
     });
 
     const values = pickedData.map(value => value.total);
@@ -198,7 +281,7 @@ const ChartReport = ({
       ]
     };
     return (
-      <div>
+      <div style={{ marginBottom: theme.spacing(1) }}>
         <Doughnut data={data} />
         <Typography
           variant="h6"
@@ -212,76 +295,123 @@ const ChartReport = ({
     );
   };
 
-  const submitComment = data => {
-    loading(true);
-    const value = document.getElementById("stop-comment").value;
-    const comment = {
-      message: value,
-      info: data
-    };
-    handleSubmitComment(comment)
-      .then(() => {
-        loading(false);
-        const popUpData = {
-          title: "Comment Sucessfully Posted",
-          body: (
-            <Typography variant="h5" component="h5" align="center">
-              Comment Sucessfully Posted! Your feedback is valuable to us keep
-              commenting. Thanks
-            </Typography>
-          ),
-          action: (
-            <div>
-              <Button
-                className={classes.button}
-                onClick={() => handleDialogToggle(false, null)}
-              >
-                Close
-              </Button>
-            </div>
-          )
-        };
-        handleDialogToggle(true, popUpData);
-      })
-      .catch(error => {
-        loading(false);
-        console.error(error);
-      });
+  const submitComment = event => {
+    event.preventDefault();
+    if (
+      comment.message &&
+      comment.category &&
+      comment.partList &&
+      comment.stop
+    ) {
+      setOpen(false);
+      loading(true);
+      handleSubmitComment(comment)
+        .then(() => {
+          loading(false);
+          resetComment();
+          const popUpData = {
+            title: "Comment Sucessfully Posted",
+            body: (
+              <Typography variant="h5" component="h5" align="center">
+                Comment Sucessfully Posted! Your feedback is valuable to us keep
+                commenting. Thanks
+              </Typography>
+            ),
+            action: (
+              <div>
+                <Button
+                  className={classes.button}
+                  onClick={() => handleDialogToggle(false, null)}
+                >
+                  Close
+                </Button>
+              </div>
+            )
+          };
+          handleDialogToggle(true, popUpData);
+        })
+        .catch(error => {
+          loading(false);
+          setOpen(true);
+          console.error(error);
+        });
+    }
   };
 
-  const openCommentPopup = data => {
-    const popUpData = {
-      title: "Comment on this stop",
-      body: (
+  const renderCommentCategory = () => {
+    return (
+      <FormControl variant="outlined" className={classes.fullWidth}>
+        <InputLabel ref={inputLabel} htmlFor="category">
+          Select Category
+        </InputLabel>
+        <Select
+          value={comment.category}
+          onChange={handleChange("category")}
+          input={
+            <OutlinedInput labelWidth={110} name="category" id="category" />
+          }
+        >
+          <MenuItem value="">
+            <em>None</em>
+          </MenuItem>
+          <MenuItem value={10}>Ten</MenuItem>
+          <MenuItem value={20}>Twenty</MenuItem>
+          <MenuItem value={30}>Thirty</MenuItem>
+        </Select>
+      </FormControl>
+    );
+  };
+
+  const renderPartList = () => {
+    return (
+      <FormControl variant="outlined" className={classes.fullWidth}>
+        <InputLabel ref={inputLabel} htmlFor="part_list">
+          Select Part List
+        </InputLabel>
+        <Select
+          value={comment.partList}
+          onChange={handleChange("partList")}
+          input={
+            <OutlinedInput labelWidth={110} name="part_list" id="part_list" />
+          }
+        >
+          <MenuItem value="">
+            <em>None</em>
+          </MenuItem>
+          <MenuItem value={10}>Ten</MenuItem>
+          <MenuItem value={20}>Twenty</MenuItem>
+          <MenuItem value={30}>Thirty</MenuItem>
+        </Select>
+      </FormControl>
+    );
+  };
+
+  const renderCommentBody = () => {
+    return (
+      <React.Fragment>
+        <Grid container spacing={2}>
+          <Grid item xs={6}>
+            {renderCommentCategory()}
+          </Grid>
+          <Grid item xs={6}>
+            {renderPartList()}
+          </Grid>
+        </Grid>
+
         <TextField
           id="stop-comment"
           label="Comment"
-          className={classes.commentField}
+          value={comment.message}
+          onChange={handleChange("message")}
+          className={`${classes.commentField} ${classes.fullWidth}`}
           margin="normal"
           variant="outlined"
           multiline
           rows={5}
           rowsMax={10}
         />
-      ),
-      action: (
-        <div>
-          <Button
-            className={classes.button}
-            onClick={() => handleDialogToggle(false, null)}
-          >
-            Close
-          </Button>
-          <Button
-            className={classes.button}
-            onClick={() => submitComment(data)}
-          >
-            Submit
-          </Button>
-        </div>
-      )
-    };
-    handleDialogToggle(true, popUpData);
+      </React.Fragment>
+    );
   };
 
   const openVideoPopup = data => {
@@ -320,6 +450,7 @@ const ChartReport = ({
             {machine}
           </TableCell>
           {eventData.map((event, index) => {
+            const title = event.stop_name.replace("_", " ");
             return (
               <TableCell key={index} className={classes.cell}>
                 <div
@@ -329,7 +460,7 @@ const ChartReport = ({
                     border: `1px solid ${theme.palette.grey[300]}`,
                     minWidth: 25
                   }}
-                  title={`${new Date(
+                  title={`${upperFirst(title)} \n ${new Date(
                     event.start_time
                   ).toLocaleString()} - ${new Date(
                     event.end_time
@@ -339,9 +470,7 @@ const ChartReport = ({
                     <React.Fragment>
                       <div
                         className={classes.comment}
-                        onClick={e => {
-                          openCommentPopup(event);
-                        }}
+                        onClick={handleClickOpen("stop", event)}
                       />
                       <div
                         className={classes.video}
@@ -407,25 +536,12 @@ const ChartReport = ({
       </Paper>
     );
   };
-
   return (
-    <Grid container spacing={2} style={{ height: "100%" }}>
-      <Grid
-        item
-        xs={12}
-        md={2}
-        style={{
-          alignSelf: "center",
-          display: "flex",
-          justifyContent: "center"
-        }}
-      >
-        {renderButtons()}
-      </Grid>
-      <Grid item xs={12} md={10} style={{ height: "100%" }}>
-        {renderChart()}
-      </Grid>
-    </Grid>
+    <div className={classes.root}>
+      {renderButtons()}
+      {renderChart()}
+      {renderCommentDialog()}
+    </div>
   );
 };
 

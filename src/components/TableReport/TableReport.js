@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import Grid from "@material-ui/core/Grid";
+import { upperFirst } from "lodash";
 import Button from "@material-ui/core/Button";
 import ButtonGroup from "@material-ui/core/ButtonGroup";
 import { makeStyles } from "@material-ui/core/styles";
@@ -11,16 +11,31 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import Folder from "@material-ui/icons/Folder";
 
 const useStyles = makeStyles(theme => ({
-  root: {},
+  root: {
+    height: "100%",
+    position: "relative",
+    textAlign: "center",
+    [theme.breakpoints.up("md")]: {
+      width: "calc(100% - 50px)",
+      marginLeft: "50px"
+    }
+  },
   buttonGroup: {
+    marginBottom: theme.spacing(1),
     [theme.breakpoints.up("md")]: {
       transform: "rotate(270deg)",
       WebkitTransform: "rotate(270deg)",
       msTransform: "rotate(270deg)",
       MozTransform: "rotate(270deg)",
-      OTransform: "rotate(270deg)"
+      OTransform: "rotate(270deg)",
+      position: "absolute",
+      top: "50%",
+      left: "-125px",
+      marginTop: "-17px",
+      marginBottom: 0
     }
   },
   button: {
@@ -44,10 +59,25 @@ const useStyles = makeStyles(theme => ({
   },
   data: {
     fontSize: 12
+  },
+  headerTitle: {
+    display: "flex",
+    alignItems: "center",
+    cursor: "pointer",
+    "& > span": {
+      paddingLeft: "5px",
+      marginTop: "3px",
+      lineHeight: 1
+    }
   }
 }));
 
-const TableReport = ({ tableData, tableView, handleTableViewChange }) => {
+const TableReport = ({
+  tableData,
+  tableView,
+  handleTableViewChange,
+  handleDialogToggle
+}) => {
   const classes = useStyles();
   const theme = useTheme();
 
@@ -80,6 +110,64 @@ const TableReport = ({ tableData, tableView, handleTableViewChange }) => {
     </ButtonGroup>
   );
 
+  const openDoc = () => {
+    const win = window.open(
+      "http://clips.vorwaerts-gmbh.de/VfE_html5.mp4",
+      "_blank"
+    );
+    win.focus();
+  };
+
+  const openDocument = machine => {
+    const body = (
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Sn No.</TableCell>
+            <TableCell>Name</TableCell>
+            <TableCell>Type</TableCell>
+            <TableCell>Size</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          <TableRow onClick={openDoc}>
+            <TableCell>1.</TableCell>
+            <TableCell>Stop</TableCell>
+            <TableCell>Video</TableCell>
+            <TableCell>4Mb</TableCell>
+          </TableRow>
+          <TableRow onClick={openDoc}>
+            <TableCell>2.</TableCell>
+            <TableCell>Stop</TableCell>
+            <TableCell>Video</TableCell>
+            <TableCell>4Mb</TableCell>
+          </TableRow>
+          <TableRow onClick={openDoc}>
+            <TableCell>3.</TableCell>
+            <TableCell>Stop</TableCell>
+            <TableCell>Video</TableCell>
+            <TableCell>4Mb</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    );
+    const popUpData = {
+      title: `${upperFirst(machine)} machine documents`,
+      body,
+      action: (
+        <div>
+          <Button
+            className={classes.button}
+            onClick={() => handleDialogToggle(false, null)}
+          >
+            Close
+          </Button>
+        </div>
+      )
+    };
+    handleDialogToggle(true, popUpData);
+  };
+
   const renderTableHeader = () => {
     return Object.keys(tableData).map((machine, index) => {
       return (
@@ -88,10 +176,22 @@ const TableReport = ({ tableData, tableView, handleTableViewChange }) => {
           className={classes.capitalize}
           style={{ padding: "10px" }}
         >
-          {machine}
+          <span
+            className={classes.headerTitle}
+            onClick={() => openDocument(machine)}
+          >
+            <Folder /> <span>{machine}</span>
+          </span>
         </TableCell>
       );
     });
+  };
+
+  const renderAlarmData = alarmData => {
+    if (alarmData && alarmData.length) {
+      return alarmData[0];
+    }
+    return null;
   };
 
   const renderTableBody = () => {
@@ -157,6 +257,8 @@ const TableReport = ({ tableData, tableView, handleTableViewChange }) => {
                         .toFixed(2)
                         .toString()
                         .replace(".00", "")}%`
+                  : status.key === "active_alarm"
+                  ? renderAlarmData(tableData[machine][status.key])
                   : tableData[machine][status.key]}
               </TableCell>
             );
@@ -180,7 +282,7 @@ const TableReport = ({ tableData, tableView, handleTableViewChange }) => {
     //Creating fault array with maximum length of fault array
     const faultArray = Array.from({ length: maxFault }, (v, i) => i);
 
-    const tableBottom = faultArray.map((fault, index) => {
+    const tableMid = faultArray.map((fault, index) => {
       return (
         <TableRow
           key={index}
@@ -211,7 +313,43 @@ const TableReport = ({ tableData, tableView, handleTableViewChange }) => {
       );
     });
 
-    return [tableTop, tableBottom];
+    const bottomArray = [
+      { key: "mrbf", value: "MTBF" },
+      { key: "mttr", value: "MTTR" }
+    ];
+
+    const tableBottom = bottomArray.map((status, index) => {
+      return (
+        <TableRow
+          key={index}
+          style={{
+            backgroundColor:
+              index % 2 === 0
+                ? theme.palette.grey[200]
+                : theme.palette.common.white
+          }}
+        >
+          <TableCell
+            key={`status_${index}`}
+            className={`${classes.capitalize} ${classes.title}`}
+          >
+            {status.value}
+          </TableCell>
+          {Object.keys(tableData).map((machine, i) => {
+            return (
+              <TableCell
+                key={i}
+                className={`${classes.capitalize} ${classes.data}`}
+              >
+                {tableData[machine][status.key]}
+              </TableCell>
+            );
+          })}
+        </TableRow>
+      );
+    });
+
+    return [tableTop, tableMid, tableBottom];
   };
 
   const renderFaultData = (machine, index) => {
@@ -253,36 +391,25 @@ const TableReport = ({ tableData, tableView, handleTableViewChange }) => {
   };
 
   return (
-    <Grid container spacing={2} style={{ height: "100%" }}>
-      <Grid
-        item
-        xs={12}
-        md={2}
-        style={{
-          alignSelf: "center",
-          display: "flex",
-          justifyContent: "center"
-        }}
-      >
-        {renderButtons()}
-      </Grid>
-      <Grid item xs={12} md={10} style={{ height: "100%" }}>
-        {renderTable()}
-      </Grid>
-    </Grid>
+    <div className={classes.root}>
+      {renderButtons()}
+      {renderTable()}
+    </div>
   );
 };
 
 TableReport.propTypes = {
   tableData: PropTypes.object.isRequired,
   tableView: PropTypes.string.isRequired,
-  handleTableViewChange: PropTypes.func.isRequired
+  handleTableViewChange: PropTypes.func.isRequired,
+  handleDialogToggle: PropTypes.func.isRequired
 };
 
 TableReport.defaultProps = {
   tableData: {},
   tableView: "count_wise",
-  handleTableViewChange: () => {}
+  handleTableViewChange: () => {},
+  handleDialogToggle: () => {}
 };
 
 export default TableReport;

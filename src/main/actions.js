@@ -115,7 +115,7 @@ export const parseData = async (data, dispatch) => {
   dispatch({ type: FETCHED_DATA, appData: parsedData });
 };
 
-export const fetchStopData = () => (dispatch, getState) => {
+export const fetchStopData = () => async (dispatch, getState) => {
   const { REACT_APP_EVENT_BAR_API, REACT_APP_PIE_CHART_API } = process.env;
 
   const { appData } = getState().Main;
@@ -133,38 +133,32 @@ export const fetchStopData = () => (dispatch, getState) => {
   });
 
   const currentDateTime = new Date().toISOString().split(".")[0];
-
-  const stopData = Promise.all(
-    skuData.map(async machine => {
-      let stop = {
-        [machine]: {}
-      };
+  let parsedData = {};
+  await Promise.all(
+    ["filler", "induction", "labeller", "shrink"].map(async machine => {
+      //const startTime = appData[machine].sku.sku_start_time.split(".")[0];
+      parsedData[machine] = {};
       return APIS.map(async api => {
-        const url = `${api.url}?startTime=${
-          appData[machine].sku.sku_start_time.split(".")[0]
-        }&endTime=${currentDateTime}`;
+        const url = `${
+          api.url
+        }?startTime=2019-08-09T13:02:16&endTime=${currentDateTime}`;
 
         return await fetch(url)
           .then(result => result.json())
           .then(data => {
-            stop[machine] = {
-              ...stop[machine],
+            parsedData[machine] = {
+              ...parsedData[machine],
               [api.name]: data
             };
-            return stop;
+            return data;
           })
           .catch(err => console.error(err));
       });
     })
   );
 
-  stopData.then(value => {
-    return value.map(stop => {
-      return stop.map(val => {
-        return val.then(stopVal => {
-          dispatch({ type: FETCHED_STOP_DATA, stopVal });
-        });
-      });
-    });
-  });
+  setTimeout(
+    () => dispatch({ type: FETCHED_STOP_DATA, stopVal: parsedData }),
+    3000
+  );
 };

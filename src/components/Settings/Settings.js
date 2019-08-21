@@ -1,5 +1,6 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
+import { Link } from "react-router-dom";
 import { useTheme } from "@material-ui/styles";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
@@ -55,13 +56,17 @@ const useStyles = makeStyles(theme => {
       [theme.breakpoints.up("md")]: {
         position: "absolute",
         right: "-55px",
-        top: "15px"
+        top: "17px"
       }
+    },
+    link: {
+      textDecoration: "none",
+      color: theme.palette.text.primary
     }
   };
 });
 
-const Settings = ({ data, handleDateChange, handleChangeItem, goToEvent }) => {
+const Settings = ({ data, handleDateChange, handleChangeItem }) => {
   const classes = useStyles();
   const theme = useTheme();
 
@@ -91,7 +96,6 @@ const Settings = ({ data, handleDateChange, handleChangeItem, goToEvent }) => {
         <MuiPickersUtilsProvider utils={DateFnsUtils}>
           <TimePicker
             showTodayButton
-            disablePast
             todayLabel="now"
             value={selectedDate}
             onChange={date => handleDateChange(key, date)}
@@ -104,7 +108,6 @@ const Settings = ({ data, handleDateChange, handleChangeItem, goToEvent }) => {
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
         <DateTimePicker
           value={selectedDate}
-          disablePast
           onChange={date => handleDateChange(key, date)}
           format="yyyy/MM/dd hh:mm a"
           showTodayButton
@@ -201,8 +204,10 @@ const Settings = ({ data, handleDateChange, handleChangeItem, goToEvent }) => {
           </ConfigChip>
         );
       })}
-      <Button onClick={goToEvent} className={classes.event}>
-        Event
+      <Button size="small" className={classes.event}>
+        <Link to={"/event"} className={classes.link}>
+          Event
+        </Link>
       </Button>
     </div>
   );

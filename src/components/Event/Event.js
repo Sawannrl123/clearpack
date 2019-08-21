@@ -37,7 +37,7 @@ const Event = props => {
   return (
     <React.Fragment>
       {props.stopData !== null && props.appData !== null ? (
-        <SiteContainer backgroundColor={theme.palette.grey[900]}>
+        <SiteContainer fullPage backgroundColor={theme.palette.grey[900]}>
           <div className={classes.root}>
             <ChartReport
               chartData={props.stopData || {}}

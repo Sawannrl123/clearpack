@@ -2,24 +2,32 @@ import React from "react";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
 
 const useStyles = makeStyles(theme => ({
   root: {
-    padding: theme.spacing(2),
+    padding: theme.spacing(1),
     height: "100%",
     backgroundColor: theme.palette.grey[800],
-    overflow: "auto"
+    overflow: "auto",
+    [theme.breakpoints.down("sm")]: {
+      display: "flex",
+      flexWrap: "wrap",
+      padding: 0
+    }
   },
   status: {
-    padding: theme.spacing(2, 1)
+    padding: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    [theme.breakpoints.down("sm")]: {
+      margin: theme.spacing(1)
+    }
   },
   name: {
-    fontSize: 15
+    fontSize: 13
   },
   value: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: 600
   }
 }));
@@ -39,7 +47,7 @@ const StatusReport = ({ statusData }) => {
       value: parseInt(statusData.bottle_loss)
     },
     {
-      name: "Aviability",
+      name: "Availability",
       value: `${parseFloat(statusData.aviability)
         .toFixed(2)
         .toString()
@@ -73,41 +81,41 @@ const StatusReport = ({ statusData }) => {
         .toFixed(2)
         .toString()
         .replace(".", ":")
+    },
+    {
+      name: "Total Quantity",
+      value: parseFloat(statusData.total_count)
     }
   ];
   const statusReport = () => {
     return data.map((item, index) => {
       return (
-        <Grid item xs={index % 2 === 0 ? 5 : 7} key={index}>
-          <Paper className={classes.status} key={index}>
-            <Typography
-              variant="h6"
-              component="h6"
-              align="center"
-              className={classes.name}
-              noWrap
-            >
-              {item.name}
-            </Typography>
-            <Typography
-              variant="body1"
-              component="p"
-              align="center"
-              className={classes.value}
-            >
-              {item.value}
-            </Typography>
-          </Paper>
-        </Grid>
+        <Paper className={classes.status} key={index}>
+          <Typography
+            variant="h6"
+            component="h6"
+            align="center"
+            className={classes.name}
+            noWrap
+          >
+            {item.name}
+          </Typography>
+          <Typography
+            variant="body1"
+            component="p"
+            align="center"
+            className={classes.value}
+          >
+            {item.value}
+          </Typography>
+        </Paper>
       );
     });
   };
 
   return (
     <Paper className={classes.root} elevation={5}>
-      <Grid container spacing={2}>
-        {statusReport()}
-      </Grid>
+      {statusReport()}
     </Paper>
   );
 };

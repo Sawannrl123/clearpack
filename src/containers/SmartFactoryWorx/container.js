@@ -1,6 +1,7 @@
 import { connect } from "react-redux";
 import { SmartFactoryWorx } from "../../components";
 import { handleTableViewChange } from "./actions";
+import { handleDialogToggle } from "../Dialog/actions";
 
 const mapStateToProps = (state, ownProps) => ({
   ...ownProps,
@@ -9,7 +10,8 @@ const mapStateToProps = (state, ownProps) => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  handleTableViewChange: view => dispatch(handleTableViewChange(view))
+  handleTableViewChange: view => dispatch(handleTableViewChange(view)),
+  handleDialogToggle: (open, data) => dispatch(handleDialogToggle(open, data))
 });
 
 export default connect(

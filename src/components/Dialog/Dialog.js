@@ -5,7 +5,14 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 
-const SiteDialog = ({ open, handleDialogToggle, title, action, children }) => {
+const SiteDialog = ({
+  open,
+  handleDialogToggle,
+  title,
+  action,
+  children,
+  ...props
+}) => {
   return (
     <div>
       <Dialog
@@ -13,6 +20,7 @@ const SiteDialog = ({ open, handleDialogToggle, title, action, children }) => {
         onClose={() => handleDialogToggle(false)}
         scroll="paper"
         aria-labelledby="scroll-dialog-title"
+        {...props}
       >
         {title && <DialogTitle id="scroll-dialog-title">{title}</DialogTitle>}
         <DialogContent dividers>{children}</DialogContent>

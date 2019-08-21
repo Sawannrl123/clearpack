@@ -10,30 +10,11 @@ import {
 } from "./actions";
 
 class EventPage extends PureComponent {
-  state = {
-    isMounted: false
-  };
-
   componentDidMount = async () => {
-    const { isMounted } = this.state;
-    if (!isMounted) {
-      if (this.props.appData) {
-        await this.props.fetchStopData();
-        this.setState(
-          {
-            isMounted: true
-          },
-          () => {
-            this.interval = setInterval(
-              async () => await this.props.fetchStopData(),
-              10000
-            );
-          }
-        );
-      } else {
-        setTimeout(async () => await this.props.fetchStopData(), 5000);
-      }
-    }
+    this.interval = setInterval(
+      async () => await this.props.fetchStopData(),
+      5000
+    );
   };
 
   componentWillUnmount = () => {

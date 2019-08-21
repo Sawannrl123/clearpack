@@ -38,6 +38,7 @@ export const Data = {
       "Current Day",
       "Current Week",
       "Current Month",
+      "Last 3 Months",
       "Period"
     ],
     From: null,

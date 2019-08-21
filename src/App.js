@@ -33,7 +33,7 @@ class App extends PureComponent {
         () => {
           this.interval = setInterval(
             async () => await this.props.fetchData(),
-            10000
+            5000
           );
         }
       );
@@ -44,10 +44,6 @@ class App extends PureComponent {
     clearInterval(this.interval);
   };
 
-  goToEvent = () => {
-    this.props.history.push("/event");
-  };
-
   renderHeader = () => {
     return (
       <Header>
@@ -55,7 +51,6 @@ class App extends PureComponent {
           data={this.props.SmartFactoryWorx}
           handleChangeItem={this.props.handleChangeItem}
           handleDateChange={this.props.handleDateChange}
-          goToEvent={this.goToEvent}
         />
       </Header>
     );
@@ -82,6 +77,8 @@ class App extends PureComponent {
                     <Dialog
                       title={this.props.Dialog.data.title}
                       action={this.props.Dialog.data.action}
+                      fullWidth
+                      maxWidth="sm"
                     >
                       {this.props.Dialog.data.body}
                     </Dialog>
