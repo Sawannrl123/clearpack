@@ -8,14 +8,14 @@ const useStyles = makeStyles(theme => ({
   "@global": {
     "*::-webkit-scrollbar": {
       width: "4px",
-      height: "4px"
+      height: "10px"
     },
     "*::-webkit-scrollbar-track": {
-      "-webkit-box-shadow": "inset 0 0 2px white"
+      "-webkit-box-shadow": "inset 0 0 2px black"
     },
     "*::-webkit-scrollbar-thumb": {
       backgroundColor: theme.palette.primary.light,
-      outline: "1px solid white"
+      outline: "1px solid gray"
     },
     body: {
       [theme.breakpoints.up("md")]: {

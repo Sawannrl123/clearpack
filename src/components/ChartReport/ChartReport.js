@@ -84,7 +84,7 @@ const useStyles = makeStyles(theme => ({
     }
   },
   days: {
-    height: "100%",
+    height: "50%",
     overflow: "auto"
   },
   title: {

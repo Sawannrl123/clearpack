@@ -85,9 +85,11 @@ export const parseData = async (data, dispatch) => {
       parsedData.hasOwnProperty(item.machine_name)
     ) {
       parsedData[item.machine_name]["sku"] = item;
-      parsedData[item.machine_name]["target"] = `${parseFloat(
-        (item.current_count / item.target_quanity) * 100
-      ).toFixed(2)}%`;
+      parsedData[item.machine_name]["target"] = `${item.target_quanity}/${
+        item.current_count
+      }/${parseFloat((item.current_count / item.target_quanity) * 100).toFixed(
+        2
+      )}%`;
     }
     if (item && item.length) {
       item.map(value => {
@@ -132,22 +134,35 @@ export const fetchStopData = () => async (dispatch, getState) => {
     return null;
   });
 
+  const machines = [
+    "filler",
+    "induction",
+    "labeller",
+    "Shrink",
+    "packer",
+    "erector",
+    "c_weigher",
+    "c_sealer"
+  ];
+
   const currentDateTime = new Date().toISOString().split(".")[0];
   let parsedData = {};
   await Promise.all(
-    ["filler", "induction", "labeller", "shrink"].map(async machine => {
-      //const startTime = appData[machine].sku.sku_start_time.split(".")[0];
-      parsedData[machine] = {};
+    ["filler"].map(async machine => {
+      const startTime = appData[machine].sku.sku_start_time.split(".")[0];
+      //parsedData[machine] = {};
       return APIS.map(async api => {
-        const url = `${
-          api.url
-        }?startTime=2019-08-09T13:02:16&endTime=${currentDateTime}`;
+        const url = `${api.url}?startTime=${startTime}&endTime=${currentDateTime}`;
 
         return await fetch(url)
           .then(result => result.json())
           .then(data => {
-            parsedData[machine] = {
+            /*parsedData[machine] = {
               ...parsedData[machine],
+              [api.name]: data
+            };*/
+            parsedData = {
+              ...parsedData,
               [api.name]: data
             };
             return data;
@@ -157,8 +172,9 @@ export const fetchStopData = () => async (dispatch, getState) => {
     })
   );
 
-  setTimeout(
-    () => dispatch({ type: FETCHED_STOP_DATA, stopVal: parsedData }),
-    3000
-  );
+  setTimeout(() => {
+    let stopVal = {};
+    machines.map(machine => (stopVal[machine] = parsedData));
+    dispatch({ type: FETCHED_STOP_DATA, stopVal });
+  }, 3000);
 };

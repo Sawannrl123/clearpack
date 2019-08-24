@@ -1,6 +1,5 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import { Link } from "react-router-dom";
 import { useTheme } from "@material-ui/styles";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
@@ -8,13 +7,8 @@ import ListItemText from "@material-ui/core/ListItemText";
 import MenuItem from "@material-ui/core/MenuItem";
 import Menu from "@material-ui/core/Menu";
 import DateFnsUtils from "@date-io/date-fns";
-import {
-  DateTimePicker,
-  MuiPickersUtilsProvider,
-  TimePicker
-} from "@material-ui/pickers";
-import { ConfigChip } from "../../components";
-import { Button } from "@material-ui/core";
+import { DateTimePicker, MuiPickersUtilsProvider } from "@material-ui/pickers";
+import { ConfigChip, Clock } from "../../components";
 
 const useStyles = makeStyles(theme => {
   return {
@@ -50,18 +44,6 @@ const useStyles = makeStyles(theme => {
           width: 100
         }
       }
-    },
-    event: {
-      textTransform: "capitalize",
-      [theme.breakpoints.up("md")]: {
-        position: "absolute",
-        right: "-55px",
-        top: "17px"
-      }
-    },
-    link: {
-      textDecoration: "none",
-      color: theme.palette.text.primary
     }
   };
 });
@@ -87,23 +69,7 @@ const Settings = ({ data, handleDateChange, handleChangeItem }) => {
 
   const renderDateTime = key => {
     const selectedDate = data.date[key];
-    const selectedItem = data.shiftData;
-    if (
-      selectedItem.value === "Current Shift" ||
-      selectedItem.value === "Current Day"
-    ) {
-      return (
-        <MuiPickersUtilsProvider utils={DateFnsUtils}>
-          <TimePicker
-            showTodayButton
-            todayLabel="now"
-            value={selectedDate}
-            onChange={date => handleDateChange(key, date)}
-            className={classes.dateTimePicker}
-          />
-        </MuiPickersUtilsProvider>
-      );
-    }
+
     return (
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
         <DateTimePicker
@@ -167,7 +133,17 @@ const Settings = ({ data, handleDateChange, handleChangeItem }) => {
   return (
     <div className={classes.root}>
       {Object.keys(data.data.setting).map((item, index) => {
-        if (
+        if (data.data.setting[item] === undefined) {
+          return (
+            <ConfigChip
+              key={index}
+              title={item}
+              titleBg={theme.palette.primary.dark}
+            >
+              <Clock />
+            </ConfigChip>
+          );
+        } else if (
           typeof data.data.setting[item] === "object" &&
           data.data.setting[item] !== null
         ) {
@@ -204,11 +180,6 @@ const Settings = ({ data, handleDateChange, handleChangeItem }) => {
           </ConfigChip>
         );
       })}
-      <Button size="small" className={classes.event}>
-        <Link to={"/event"} className={classes.link}>
-          Event
-        </Link>
-      </Button>
     </div>
   );
 };

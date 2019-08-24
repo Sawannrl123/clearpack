@@ -32,13 +32,12 @@ export const plural = num => {
 
 export const Data = {
   setting: {
-    Date: getDateandTimeFromMillisecond(new Date().getTime()),
+    Date: undefined,
     Analysis: [
       "Current Shift",
       "Current Day",
       "Current Week",
       "Current Month",
-      "Last 3 Months",
       "Period"
     ],
     From: null,

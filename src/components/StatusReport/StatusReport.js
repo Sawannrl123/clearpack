@@ -36,15 +36,19 @@ const StatusReport = ({ statusData }) => {
   const classes = useStyles();
   const data = [
     {
+      name: "Good Count",
+      value: parseFloat(statusData.total_count)
+    },
+    {
+      name: "Rejected count",
+      value: parseInt(statusData.rejected_quantity)
+    },
+    {
       name: "OEE",
       value: `${parseFloat(statusData.oee)
         .toFixed(2)
         .toString()
         .replace(".00", "")}%`
-    },
-    {
-      name: "Bottle Loss",
-      value: parseInt(statusData.bottle_loss)
     },
     {
       name: "Availability",
@@ -54,19 +58,11 @@ const StatusReport = ({ statusData }) => {
         .replace(".00", "")}%`
     },
     {
-      name: "No. of Stop",
-      value: parseInt(statusData.no_of_stop)
-    },
-    {
       name: "Performance",
       value: `${parseFloat(statusData.performance)
         .toFixed(2)
         .toString()
         .replace(".00", "")}%`
-    },
-    {
-      name: "Rejected Quantity",
-      value: parseInt(statusData.rejected_quantity)
     },
     {
       name: "Quality",
@@ -76,15 +72,19 @@ const StatusReport = ({ statusData }) => {
         .replace(".00", "")}%`
     },
     {
+      name: "No. of Stop",
+      value: parseInt(statusData.no_of_stop)
+    },
+    {
+      name: "Bottle Loss",
+      value: parseInt(statusData.bottle_loss)
+    },
+    {
       name: "Time Loss",
       value: parseFloat(statusData.time_loss)
         .toFixed(2)
         .toString()
         .replace(".", ":")
-    },
-    {
-      name: "Total Quantity",
-      value: parseFloat(statusData.total_count)
     }
   ];
   const statusReport = () => {

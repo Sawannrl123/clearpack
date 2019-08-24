@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { Link } from "react-router-dom";
 import { upperFirst } from "lodash";
 import Button from "@material-ui/core/Button";
 import ButtonGroup from "@material-ui/core/ButtonGroup";
@@ -12,6 +13,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Folder from "@material-ui/icons/Folder";
+import AlarmScroll from "./AlarmScroll";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -32,18 +34,36 @@ const useStyles = makeStyles(theme => ({
       MozTransform: "rotate(270deg)",
       OTransform: "rotate(270deg)",
       position: "absolute",
-      top: "50%",
-      left: "-125px",
-      marginTop: "-17px",
-      marginBottom: 0
+      left: "-88px",
+      bottom: 35
     }
   },
   button: {
     textTransform: "capitalize",
     fontSize: 13,
-    width: 92,
+    width: 55,
     "&.active": {
       backgroundColor: theme.palette.secondary.main
+    }
+  },
+  event: {
+    marginBottom: theme.spacing(1),
+    [theme.breakpoints.up("md")]: {
+      transform: "rotate(270deg)",
+      WebkitTransform: "rotate(270deg)",
+      msTransform: "rotate(270deg)",
+      MozTransform: "rotate(270deg)",
+      OTransform: "rotate(270deg)",
+      position: "absolute",
+      left: "-65px",
+      top: 65
+    }
+  },
+  buttonContainer: {
+    [theme.breakpoints.down("sm")]: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
     }
   },
   capitalize: {
@@ -69,6 +89,10 @@ const useStyles = makeStyles(theme => ({
       marginTop: "3px",
       lineHeight: 1
     }
+  },
+  link: {
+    textDecoration: "none",
+    color: theme.palette.common.white
   }
 }));
 
@@ -81,33 +105,53 @@ const TableReport = ({
   const classes = useStyles();
   const theme = useTheme();
 
+  const colors = {
+    ready: "#0CBA5B",
+    empty: "#A9DBDE",
+    not_ready: "#E60748",
+    blocked: "#BEBEBE",
+    planned: "#FEF729"
+  };
+
   const renderButtons = () => (
-    <ButtonGroup
-      color="primary"
-      variant="contained"
-      className={classes.buttonGroup}
-    >
+    <div className={classes.buttonContainer}>
       <Button
-        className={
-          tableView === "count_wise"
-            ? `${classes.button} active`
-            : `${classes.button}`
-        }
-        onClick={() => handleTableViewChange("count_wise")}
+        size="small"
+        color="primary"
+        variant="contained"
+        className={`${classes.button} ${classes.event}`}
       >
-        Count
+        <Link to={"/event"} className={classes.link}>
+          Event
+        </Link>
       </Button>
-      <Button
-        className={
-          tableView === "time_wise"
-            ? `${classes.button} active`
-            : `${classes.button}`
-        }
-        onClick={() => handleTableViewChange("time_wise")}
+      <ButtonGroup
+        color="primary"
+        variant="contained"
+        className={classes.buttonGroup}
       >
-        Time
-      </Button>
-    </ButtonGroup>
+        <Button
+          className={
+            tableView === "count_wise"
+              ? `${classes.button} active`
+              : `${classes.button}`
+          }
+          onClick={() => handleTableViewChange("count_wise")}
+        >
+          Count
+        </Button>
+        <Button
+          className={
+            tableView === "time_wise"
+              ? `${classes.button} active`
+              : `${classes.button}`
+          }
+          onClick={() => handleTableViewChange("time_wise")}
+        >
+          Time
+        </Button>
+      </ButtonGroup>
+    </div>
   );
 
   const openDoc = () => {
@@ -187,13 +231,6 @@ const TableReport = ({
     });
   };
 
-  const renderAlarmData = alarmData => {
-    if (alarmData && alarmData.length) {
-      return alarmData[0];
-    }
-    return null;
-  };
-
   const renderTableBody = () => {
     const machineStatus = [
       { key: "batch_no", value: "Batch No" },
@@ -201,10 +238,10 @@ const TableReport = ({
       { key: "count_difference", value: "Total count/buffer for Batch" },
       { key: "count_difference", value: "Shift Bottle/Case" },
       { key: "speed", value: "Speed BPM" },
-      { key: "no_of_stop", value: "No. of Faults" },
+      { key: "no_of_stop", value: "No. of Filler Stops" },
       {
         key: "time_loss",
-        value: "Fault Duration Min",
+        value: "Filler Stop Duration",
         meta: { showMinute: true }
       },
       { key: "oee", value: "OEE", meta: { showPercentage: true } },
@@ -221,7 +258,7 @@ const TableReport = ({
       { key: "quality", value: "Quality", meta: { showPercentage: true } },
       { key: "condition", value: "Current Status" },
       { key: "current_first_fault", value: "Current First Fault" },
-      { key: "active_alarm", value: "Current Active Alarm scroll" }
+      { key: "active_alarm", value: "Current Active Alarm" }
     ];
     const tableTop = machineStatus.map((status, index) => {
       return (
@@ -245,21 +282,32 @@ const TableReport = ({
               <TableCell
                 key={i}
                 className={`${classes.capitalize} ${classes.data}`}
+                style={{
+                  backgroundColor:
+                    status.key === "condition" &&
+                    colors[tableData[machine][status.key]],
+                  color:
+                    status.key === "condition" && theme.palette.common.white
+                }}
               >
-                {status.meta
-                  ? status.meta.showMinute
-                    ? tableData[machine][status.key] &&
-                      parseFloat(tableData[machine][status.key])
-                        .toFixed(2)
-                        .toString()
-                        .replace(".", ":")
-                    : `${parseFloat(tableData[machine][status.key])
-                        .toFixed(2)
-                        .toString()
-                        .replace(".00", "")}%`
-                  : status.key === "active_alarm"
-                  ? renderAlarmData(tableData[machine][status.key])
-                  : tableData[machine][status.key]}
+                {status.meta ? (
+                  status.meta.showMinute ? (
+                    tableData[machine][status.key] &&
+                    parseFloat(tableData[machine][status.key])
+                      .toFixed(2)
+                      .toString()
+                      .replace(".", ":")
+                  ) : (
+                    `${parseFloat(tableData[machine][status.key])
+                      .toFixed(2)
+                      .toString()
+                      .replace(".00", "")}%`
+                  )
+                ) : status.key === "active_alarm" ? (
+                  <AlarmScroll alarm={tableData[machine][status.key]} />
+                ) : (
+                  tableData[machine][status.key]
+                )}
               </TableCell>
             );
           })}
@@ -357,18 +405,14 @@ const TableReport = ({
       tableView === "count_wise" &&
       tableData[machine].hasOwnProperty("count_wise")
     ) {
-      return `${tableData[machine].count_wise[index].name} (${
-        tableData[machine].count_wise[index].frequency
-      })`;
+      return `${tableData[machine].count_wise[index].name} (${tableData[machine].count_wise[index].frequency})`;
     }
 
     if (
       tableView === "time_wise" &&
       tableData[machine].hasOwnProperty("time_wise")
     ) {
-      return `${tableData[machine].time_wise[index].name} (${
-        tableData[machine].time_wise[index].frequency
-      })`;
+      return `${tableData[machine].time_wise[index].name} (${tableData[machine].time_wise[index].frequency})`;
     }
 
     return null;

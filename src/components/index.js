@@ -12,3 +12,4 @@ export { default as TableReport } from "./TableReport";
 export { default as ChartReport } from "./ChartReport";
 export { default as SiteLoader } from "./SiteLoader";
 export { default as Event } from "./Event";
+export { default as Clock } from "./Clock";
