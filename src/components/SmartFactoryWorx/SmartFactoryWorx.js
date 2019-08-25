@@ -36,8 +36,7 @@ const useStyles = makeStyles(theme => ({
   },
   matchHeight: {
     [theme.breakpoints.up("md")]: {
-      height: "calc(100vh - 128px)",
-      overflow: "hidden"
+      height: "calc(100vh - 128px)"
     }
   },
   innerHeight: {

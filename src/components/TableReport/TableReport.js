@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { startCase } from "lodash";
 import { Link } from "react-router-dom";
 import { upperFirst } from "lodash";
 import Button from "@material-ui/core/Button";
@@ -21,8 +22,8 @@ const useStyles = makeStyles(theme => ({
     position: "relative",
     textAlign: "center",
     [theme.breakpoints.up("md")]: {
-      width: "calc(100% - 50px)",
-      marginLeft: "50px"
+      marginLeft: "10px",
+      width: "100%"
     }
   },
   buttonGroup: {
@@ -75,10 +76,12 @@ const useStyles = makeStyles(theme => ({
   },
   title: {
     fontSize: 12,
-    fontWeight: 500
+    fontWeight: 500,
+    whiteSpace: "nowrap"
   },
   data: {
-    fontSize: 12
+    fontSize: 12,
+    maxWidth: 110
   },
   headerTitle: {
     display: "flex",
@@ -104,7 +107,13 @@ const TableReport = ({
 }) => {
   const classes = useStyles();
   const theme = useTheme();
-
+  tableData = {
+    ...tableData,
+    packer: tableData.filler,
+    erector: tableData.induction,
+    c_weigher: tableData.labeller,
+    c_sealer: tableData.shrink
+  };
   const colors = {
     ready: "#0CBA5B",
     empty: "#A9DBDE",
@@ -224,7 +233,8 @@ const TableReport = ({
             className={classes.headerTitle}
             onClick={() => openDocument(machine)}
           >
-            <Folder /> <span>{machine}</span>
+            <Folder />{" "}
+            <span style={{ whiteSpace: "nowrap" }}>{startCase(machine)}</span>
           </span>
         </TableCell>
       );

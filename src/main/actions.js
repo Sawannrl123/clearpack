@@ -135,6 +135,7 @@ export const fetchStopData = () => async (dispatch, getState) => {
   });
 
   const machines = [
+    "line",
     "filler",
     "induction",
     "labeller",

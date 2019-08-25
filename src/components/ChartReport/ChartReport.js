@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { upperFirst } from "lodash";
+import { startCase } from "lodash";
 import { makeStyles } from "@material-ui/core/styles";
 import { useTheme } from "@material-ui/styles";
 import Typography from "@material-ui/core/Typography";
@@ -54,11 +54,11 @@ const useStyles = makeStyles(theme => ({
   root: {
     height: "100%",
     position: "relative",
-    textAlign: "center",
-    [theme.breakpoints.up("md")]: {
-      width: "calc(100% - 50px)",
-      marginLeft: "50px"
-    }
+    textAlign: "center"
+    // [theme.breakpoints.up("md")]: {
+    //   width: "calc(100% - 50px)",
+    //   marginLeft: "50px"
+    // }
   },
   buttonGroup: {
     marginBottom: theme.spacing(1),
@@ -84,13 +84,14 @@ const useStyles = makeStyles(theme => ({
     }
   },
   days: {
-    height: "50%",
+    height: "calc(50% - 8px)",
     overflow: "auto"
   },
   title: {
     textTransform: "capitalize",
     fontSize: 14,
-    fontWeight: 600
+    fontWeight: 600,
+    whiteSpace: "nowrap"
   },
   status: {
     width: "100%",
@@ -110,17 +111,20 @@ const useStyles = makeStyles(theme => ({
     cursor: "pointer"
   },
   pie: {
-    height: "100%",
-    padding: theme.spacing(2)
+    padding: theme.spacing(2),
+    marginTop: theme.spacing(2)
   },
   pieLabel: {
     marginTop: theme.spacing(2)
   },
   cell: {
-    padding: theme.spacing(1)
+    padding: theme.spacing(1, 0)
   },
   fullWidth: {
     width: "100%"
+  },
+  noBorder: {
+    border: 0
   }
 }));
 
@@ -244,17 +248,15 @@ const ChartReport = ({
 
   const renderPieChart = () => {
     return (
-      <Paper className={classes.pie}>
-        <Grid container>
-          {parsedPieMachine.map((machine, index) => {
-            return (
-              <Grid item xs={12} sm={6} md={4} key={index}>
-                {renderDoughnutChart(machine)}
-              </Grid>
-            );
-          })}
-        </Grid>
-      </Paper>
+      <Grid container>
+        {parsedPieMachine.map((machine, index) => {
+          return (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+              {renderDoughnutChart(machine)}
+            </Grid>
+          );
+        })}
+      </Grid>
     );
   };
 
@@ -263,7 +265,7 @@ const ChartReport = ({
 
     const labels = pickedData.map(label => {
       const title = label._id.replace("_", " ");
-      return `${upperFirst(title)}`;
+      return `${startCase(title)}`;
     });
 
     const values = pickedData.map(value => value.total);
@@ -289,7 +291,7 @@ const ChartReport = ({
           align="center"
           className={`${classes.title} ${classes.pieLabel}`}
         >
-          {machine}
+          {startCase(machine)}
         </Typography>
       </div>
     );
@@ -445,55 +447,118 @@ const ChartReport = ({
             component="th"
             scope="row"
             key={i}
-            className={classes.title}
+            className={`${classes.title} ${classes.noBorder}`}
           >
-            {machine}
+            {startCase(machine)}
           </TableCell>
-          {eventData.map((event, index) => {
-            const title = event.stop_name.replace("_", " ");
-            return (
-              <TableCell key={index} className={classes.cell}>
-                <div
-                  className={classes.status}
-                  style={{
-                    backgroundColor: colors[event.stop_name],
-                    border: `1px solid ${theme.palette.grey[300]}`,
-                    minWidth: 25
-                  }}
-                  title={`${upperFirst(title)} \n ${new Date(
-                    event.start_time
-                  ).toLocaleString()} - ${new Date(
-                    event.end_time
-                  ).toLocaleString()}`}
-                >
-                  {event.stop_name === "not_stop" && (
-                    <React.Fragment>
-                      <div
-                        className={classes.comment}
-                        onClick={handleClickOpen("stop", event)}
-                      />
-                      <div
-                        className={classes.video}
-                        onClick={e => {
-                          openVideoPopup(event);
-                        }}
-                      />
-                    </React.Fragment>
-                  )}
-                </div>
-              </TableCell>
-            );
-          })}
+          {eventData.map((event, index) => (
+            <TableCell
+              key={index}
+              className={`${classes.cell} ${classes.noBorder}`}
+              align="center"
+            >
+              {renderBodyContent(machine, event)}
+            </TableCell>
+          ))}
         </TableRow>
       );
     });
   };
 
+  const calcWidth = (start, end) => {
+    const startDate = new Date(start).getTime();
+    const endDate = new Date(end).getTime();
+    return Math.abs((endDate - startDate) / 1000 / 60 / 60);
+  };
+
+  const renderBodyContent = (machine, event) => {
+    if (machine === "filler") {
+      return (
+        <div
+          className={classes.status}
+          style={{
+            backgroundColor: colors[event.stop_name],
+            border:
+              event.stop_name === "not_stop" &&
+              `1px solid ${theme.palette.grey[300]}`,
+            minWidth: 50,
+            width: calcWidth(event.start_time, event.end_time),
+            maxWidth: 350,
+            margin: "0 auto"
+          }}
+          title={`${startCase(event.stop_name)} \n ${new Date(
+            event.start_time
+          ).toLocaleString()} - ${new Date(event.end_time).toLocaleString()}`}
+        >
+          {event.stop_name === "not_stop" && (
+            <React.Fragment>
+              <div
+                className={classes.comment}
+                onClick={handleClickOpen("stop", event)}
+              />
+              <div
+                className={classes.video}
+                onClick={e => {
+                  openVideoPopup(event);
+                }}
+              />
+            </React.Fragment>
+          )}
+        </div>
+      );
+    } else if (event.stop_name !== "green_stop") {
+      return (
+        <div
+          className={classes.status}
+          style={{
+            backgroundColor: colors[event.stop_name],
+            border:
+              event.stop_name === "not_stop" &&
+              `1px solid ${theme.palette.grey[300]}`,
+            minWidth: 50,
+            width: calcWidth(event.start_time, event.end_time),
+            maxWidth: 350,
+            margin: "0 auto"
+          }}
+          title={`${startCase(event.stop_name)} \n ${new Date(
+            event.start_time
+          ).toLocaleString()} - ${new Date(event.end_time).toLocaleString()}`}
+        >
+          {event.stop_name === "not_stop" && (
+            <React.Fragment>
+              <div
+                className={classes.comment}
+                onClick={handleClickOpen("stop", event)}
+              />
+              <div
+                className={classes.video}
+                onClick={e => {
+                  openVideoPopup(event);
+                }}
+              />
+            </React.Fragment>
+          )}
+        </div>
+      );
+    } else {
+      return null;
+    }
+  };
+
   const renderTabHeader = eventData => {
     return eventData.map((event, i) => {
       return (
-        <TableCell key={i} align="center">
-          {" "}
+        <TableCell
+          key={i}
+          align="center"
+          style={{ padding: 5, whiteSpace: "nowrap" }}
+        >
+          {new Date(event.start_time).getHours()}
+          {" - "}
+          {new Date(event.end_time).getHours()}
+          {/* {new Date(event.start_time).toLocaleTimeString()}
+          {" - "}
+          {new Date(event.end_time).toLocaleTimeString()} */}
         </TableCell>
       );
     });
@@ -531,14 +596,16 @@ const ChartReport = ({
 
   const renderChart = () => {
     return (
-      <Paper className={classes.days}>
-        {chartView === "event" ? renderEventBar() : renderPieChart()}
-      </Paper>
+      <React.Fragment>
+        <Paper className={classes.days}>{renderEventBar()}</Paper>
+        <Paper className={`${classes.days} ${classes.pie}`}>
+          {renderPieChart()}
+        </Paper>
+      </React.Fragment>
     );
   };
   return (
     <div className={classes.root}>
-      {renderButtons()}
       {renderChart()}
       {renderCommentDialog()}
     </div>
