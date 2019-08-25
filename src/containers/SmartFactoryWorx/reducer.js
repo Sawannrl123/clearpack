@@ -1,6 +1,9 @@
 import { Data } from "./data";
 import * as actions from "./actionTypes";
 
+const currentDate = new Date().toLocaleDateString("en-US");
+const currentDayStartTime = new Date(`${currentDate}, 7:00:00`);
+
 const initialState = {
   data: Data,
   shiftData: {
@@ -8,7 +11,7 @@ const initialState = {
     value: Data.setting.Analysis[0]
   },
   date: {
-    From: new Date(),
+    From: currentDayStartTime,
     To: new Date()
   },
   User: "Admin",

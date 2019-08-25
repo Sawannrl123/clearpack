@@ -1,3 +1,5 @@
+import { groupBy } from "lodash";
+
 import {
   LOADING,
   ERROR,
@@ -127,19 +129,12 @@ export const fetchStopData = () => async (dispatch, getState) => {
     { name: "pie", url: REACT_APP_PIE_CHART_API }
   ];
 
-  const skuData = Object.keys(appData).filter(machine => {
-    if (appData[machine].hasOwnProperty("sku")) {
-      return appData[machine].sku;
-    }
-    return null;
-  });
-
   const machines = [
     "line",
     "filler",
     "induction",
     "labeller",
-    "Shrink",
+    "shrink",
     "packer",
     "erector",
     "c_weigher",
@@ -149,33 +144,33 @@ export const fetchStopData = () => async (dispatch, getState) => {
   const currentDateTime = new Date().toISOString().split(".")[0];
   let parsedData = {};
   await Promise.all(
-    ["filler"].map(async machine => {
-      const startTime = appData[machine].sku.sku_start_time.split(".")[0];
-      //parsedData[machine] = {};
-      return APIS.map(async api => {
-        const url = `${api.url}?startTime=${startTime}&endTime=${currentDateTime}`;
+    APIS.map(async api => {
+      const startTime = appData["filler"].sku.sku_start_time.split(".")[0];
+      const url = `${api.url}?startTime=${startTime}&endTime=${currentDateTime}`;
 
-        return await fetch(url)
-          .then(result => result.json())
-          .then(data => {
-            /*parsedData[machine] = {
-              ...parsedData[machine],
-              [api.name]: data
-            };*/
-            parsedData = {
-              ...parsedData,
-              [api.name]: data
-            };
-            return data;
-          })
-          .catch(err => console.error(err));
-      });
+      return await fetch(url)
+        .then(result => result.json())
+        .then(data => {
+          parsedData = {
+            ...parsedData,
+            [api.name]: data
+          };
+          return data;
+        })
+        .catch(err => console.error(err));
     })
   );
 
   setTimeout(() => {
     let stopVal = {};
-    machines.map(machine => (stopVal[machine] = parsedData));
+    const group = groupBy(parsedData.event, "machine_name");
+    machines.map(
+      machine =>
+        (stopVal[machine] = {
+          pie: parsedData.pie,
+          event: group[machine] ? group[machine] : group["filler"]
+        })
+    );
     dispatch({ type: FETCHED_STOP_DATA, stopVal });
   }, 3000);
 };

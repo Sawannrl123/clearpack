@@ -69,7 +69,6 @@ const Settings = ({ data, handleDateChange, handleChangeItem }) => {
 
   const renderDateTime = key => {
     const selectedDate = data.date[key];
-
     return (
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
         <DateTimePicker

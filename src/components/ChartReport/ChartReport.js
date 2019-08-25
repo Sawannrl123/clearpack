@@ -147,6 +147,7 @@ const ChartReport = ({
   });
   const classes = useStyles();
   const theme = useTheme();
+
   const parsedMachine =
     chartData &&
     Object.keys(chartData).filter(machine => {
@@ -451,15 +452,16 @@ const ChartReport = ({
           >
             {startCase(machine)}
           </TableCell>
-          {eventData.map((event, index) => (
-            <TableCell
-              key={index}
-              className={`${classes.cell} ${classes.noBorder}`}
-              align="center"
-            >
-              {renderBodyContent(machine, event)}
-            </TableCell>
-          ))}
+          {eventData.map((event, index) =>
+            checkForCurrentShiftTime(event) ? (
+              <TableCell
+                key={index}
+                className={`${classes.cell} ${classes.noBorder}`}
+              >
+                {renderBodyContent(machine, event)}
+              </TableCell>
+            ) : null
+          )}
         </TableRow>
       );
     });
@@ -468,7 +470,7 @@ const ChartReport = ({
   const calcWidth = (start, end) => {
     const startDate = new Date(start).getTime();
     const endDate = new Date(end).getTime();
-    return Math.abs((endDate - startDate) / 1000 / 60 / 60);
+    return Math.abs((endDate - startDate) / 1000 / 60);
   };
 
   const renderBodyContent = (machine, event) => {
@@ -483,8 +485,7 @@ const ChartReport = ({
               `1px solid ${theme.palette.grey[300]}`,
             minWidth: 50,
             width: calcWidth(event.start_time, event.end_time),
-            maxWidth: 350,
-            margin: "0 auto"
+            maxWidth: 350
           }}
           title={`${startCase(event.stop_name)} \n ${new Date(
             event.start_time
@@ -517,8 +518,7 @@ const ChartReport = ({
               `1px solid ${theme.palette.grey[300]}`,
             minWidth: 50,
             width: calcWidth(event.start_time, event.end_time),
-            maxWidth: 350,
-            margin: "0 auto"
+            maxWidth: 350
           }}
           title={`${startCase(event.stop_name)} \n ${new Date(
             event.start_time
@@ -545,22 +545,25 @@ const ChartReport = ({
     }
   };
 
+  const checkForCurrentShiftTime = event => {
+    const start = new Date(event.start_time).getTime();
+    const end = new Date(event.end_time).getTime();
+    const currentDate = new Date().toLocaleDateString("en-US");
+    const currentDayStartTime = new Date(`${currentDate}, 7:00:00`).getTime();
+    const currentDayEndTime = new Date(`${currentDate}, 19:00:00`).getTime();
+
+    return start <= currentDayEndTime && end >= currentDayStartTime;
+  };
+
   const renderTabHeader = eventData => {
     return eventData.map((event, i) => {
-      return (
-        <TableCell
-          key={i}
-          align="center"
-          style={{ padding: 5, whiteSpace: "nowrap" }}
-        >
+      return checkForCurrentShiftTime(event) ? (
+        <TableCell key={i} style={{ padding: 5, whiteSpace: "nowrap" }}>
           {new Date(event.start_time).getHours()}
           {" - "}
           {new Date(event.end_time).getHours()}
-          {/* {new Date(event.start_time).toLocaleTimeString()}
-          {" - "}
-          {new Date(event.end_time).toLocaleTimeString()} */}
         </TableCell>
-      );
+      ) : null;
     });
   };
 
@@ -576,7 +579,10 @@ const ChartReport = ({
       const endDate = new Date(eventData[eventData.length - 1].end_time);
       const days = getDateArray(startDate, endDate);
       days.push(new Date());
-      return renderTableContent(eventData);
+      return parsedMachine.map(machine => {
+        //console.log(chartData[machine]);
+        return renderTableContent(chartData[machine].event);
+      });
     }
   };
 
@@ -585,7 +591,9 @@ const ChartReport = ({
       <Table className={classes.table} size="small">
         <TableHead>
           <TableRow>
-            <TableCell key="blank"> </TableCell>
+            <TableCell key="blank" style={{ width: 110 }} align="center">
+              {" "}
+            </TableCell>
             {renderTabHeader(eventData)}
           </TableRow>
         </TableHead>
