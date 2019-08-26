@@ -5,7 +5,8 @@ const initialState = {
   error: null,
   success: null,
   appData: null,
-  stopData: null
+  stopData: null,
+  pieData: null
 };
 
 export default (state = initialState, action) => {
@@ -40,6 +41,7 @@ export default (state = initialState, action) => {
     case actions.FETCHED_STOP_DATA:
       return {
         ...state,
+        pieData: action.pieData,
         stopData: {
           ...state.stopData,
           ...action.stopVal

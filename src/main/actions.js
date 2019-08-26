@@ -142,6 +142,11 @@ export const fetchStopData = () => async (dispatch, getState) => {
   ];
 
   const currentDateTime = new Date().toISOString().split(".")[0];
+  const currentDate = new Date().toLocaleDateString("en-US");
+  const startTime = new Date(`${currentDate}, 7:00:00`)
+    .toISOString()
+    .split(".")[0];
+
   let parsedData = {};
   await Promise.all(
     APIS.map(async api => {
@@ -163,6 +168,7 @@ export const fetchStopData = () => async (dispatch, getState) => {
 
   setTimeout(() => {
     let stopVal = {};
+    const pieData = parsedData.pie;
     const group = groupBy(parsedData.event, "machine_name");
     machines.map(
       machine =>
@@ -171,6 +177,6 @@ export const fetchStopData = () => async (dispatch, getState) => {
           event: group[machine] ? group[machine] : group["filler"]
         })
     );
-    dispatch({ type: FETCHED_STOP_DATA, stopVal });
+    dispatch({ type: FETCHED_STOP_DATA, stopVal, pieData });
   }, 3000);
 };

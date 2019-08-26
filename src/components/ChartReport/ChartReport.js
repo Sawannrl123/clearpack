@@ -125,11 +125,15 @@ const useStyles = makeStyles(theme => ({
   },
   noBorder: {
     border: 0
+  },
+  contentWrapper: {
+    display: "flex"
   }
 }));
 
 const ChartReport = ({
   chartData,
+  pieData,
   handleDialogToggle,
   handleChartViewChange,
   handleSubmitComment,
@@ -159,6 +163,21 @@ const ChartReport = ({
     Object.keys(chartData).filter(machine => {
       return chartData[machine].hasOwnProperty("pie");
     });
+
+  const eventTime = [
+    "07-08",
+    "08-09",
+    "09-10",
+    "10-11",
+    "11-12",
+    "12-13",
+    "13-14",
+    "14-15",
+    "15-16",
+    "16-17",
+    "17-18",
+    "18-19"
+  ];
 
   const handleClickOpen = (name, data) => () => {
     setOpen(true);
@@ -452,16 +471,16 @@ const ChartReport = ({
           >
             {startCase(machine)}
           </TableCell>
-          {eventData.map((event, index) =>
-            checkForCurrentShiftTime(event) ? (
-              <TableCell
-                key={index}
-                className={`${classes.cell} ${classes.noBorder}`}
-              >
-                {renderBodyContent(machine, event)}
-              </TableCell>
-            ) : null
-          )}
+          {eventTime.map((time, index) => (
+            <TableCell
+              key={index}
+              className={`${classes.cell} ${classes.noBorder}`}
+            >
+              <div className={classes.contentWrapper}>
+                {renderBodyContent(eventData, machine, time)}
+              </div>
+            </TableCell>
+          ))}
         </TableRow>
       );
     });
@@ -473,98 +492,121 @@ const ChartReport = ({
     return Math.abs((endDate - startDate) / 1000 / 60);
   };
 
-  const renderBodyContent = (machine, event) => {
-    if (machine === "filler") {
-      return (
-        <div
-          className={classes.status}
-          style={{
-            backgroundColor: colors[event.stop_name],
-            border:
-              event.stop_name === "not_stop" &&
-              `1px solid ${theme.palette.grey[300]}`,
-            minWidth: 50,
-            width: calcWidth(event.start_time, event.end_time),
-            maxWidth: 350
-          }}
-          title={`${startCase(event.stop_name)} \n ${new Date(
-            event.start_time
-          ).toLocaleString()} - ${new Date(event.end_time).toLocaleString()}`}
-        >
-          {event.stop_name === "not_stop" && (
-            <React.Fragment>
-              <div
-                className={classes.comment}
-                onClick={handleClickOpen("stop", event)}
-              />
-              <div
-                className={classes.video}
-                onClick={e => {
-                  openVideoPopup(event);
-                }}
-              />
-            </React.Fragment>
-          )}
-        </div>
-      );
-    } else if (event.stop_name !== "green_stop") {
-      return (
-        <div
-          className={classes.status}
-          style={{
-            backgroundColor: colors[event.stop_name],
-            border:
-              event.stop_name === "not_stop" &&
-              `1px solid ${theme.palette.grey[300]}`,
-            minWidth: 50,
-            width: calcWidth(event.start_time, event.end_time),
-            maxWidth: 350
-          }}
-          title={`${startCase(event.stop_name)} \n ${new Date(
-            event.start_time
-          ).toLocaleString()} - ${new Date(event.end_time).toLocaleString()}`}
-        >
-          {event.stop_name === "not_stop" && (
-            <React.Fragment>
-              <div
-                className={classes.comment}
-                onClick={handleClickOpen("stop", event)}
-              />
-              <div
-                className={classes.video}
-                onClick={e => {
-                  openVideoPopup(event);
-                }}
-              />
-            </React.Fragment>
-          )}
-        </div>
-      );
-    } else {
-      return null;
-    }
+  const buildDateToFilter = time => {
+    const parsedTime = time.split("-");
+    const start = `${parsedTime[0]}:00:00`;
+    const end = `${parsedTime[1]}:00:00`;
+    const currentDate = new Date().toLocaleDateString("en-US");
+    const offset = -(new Date().getTimezoneOffset() / 60);
+    const startTime = `${currentDate}T${start}${offset}`;
+    const endTime = `${currentDate}T${end}${offset}`;
   };
 
-  const checkForCurrentShiftTime = event => {
+  const renderBodyContent = (eventData, machine, time) => {
+    const parsedTime = time.split("-");
+    const start = `${parsedTime[0]}:00:00`;
+    const end = `${parsedTime[1]}:00:00`;
+    const currentDate = new Date().toLocaleDateString("en-US");
+    const startTime = new Date(`${currentDate}, ${start}`).getTime();
+    const endTime = new Date(`${currentDate}, ${end}`).getTime();
+    return (eventData[machine].event || []).map((event, index) => {
+      return renderMachineData(machine, event, startTime, endTime, index);
+    });
+  };
+
+  const renderMachineData = (machine, event, startTime, endTime, index) => {
+    if (checkForCurrentShiftTime(event, startTime, endTime, index)) {
+      if (machine === "filler") {
+        return (
+          <div
+            className={classes.status}
+            key={index}
+            style={{
+              backgroundColor: colors[event.stop_name],
+              border:
+                event.stop_name === "not_stop" &&
+                `1px solid ${theme.palette.grey[300]}`,
+              minWidth: 5,
+              width: calcWidth(event.start_time, event.end_time),
+              maxWidth: 350
+            }}
+            title={`${startCase(event.stop_name)} \n ${new Date(
+              event.start_time
+            ).toLocaleString()} - ${new Date(event.end_time).toLocaleString()}`}
+          >
+            {event.stop_name === "not_stop" && (
+              <React.Fragment>
+                <div
+                  className={classes.comment}
+                  onClick={handleClickOpen("stop", event)}
+                />
+                <div
+                  className={classes.video}
+                  onClick={e => {
+                    openVideoPopup(event);
+                  }}
+                />
+              </React.Fragment>
+            )}
+          </div>
+        );
+      } else if (event.stop_name !== "green_stop") {
+        return (
+          <div
+            className={classes.status}
+            key={index}
+            style={{
+              backgroundColor: colors[event.stop_name],
+              border:
+                event.stop_name === "not_stop" &&
+                `1px solid ${theme.palette.grey[300]}`,
+              minWidth: 5,
+              width: calcWidth(event.start_time, event.end_time),
+              maxWidth: 350
+            }}
+            title={`${startCase(event.stop_name)} \n ${new Date(
+              event.start_time
+            ).toLocaleString()} - ${new Date(event.end_time).toLocaleString()}`}
+          >
+            {event.stop_name === "not_stop" && (
+              <React.Fragment>
+                <div
+                  className={classes.comment}
+                  onClick={handleClickOpen("stop", event)}
+                />
+                <div
+                  className={classes.video}
+                  onClick={e => {
+                    openVideoPopup(event);
+                  }}
+                />
+              </React.Fragment>
+            )}
+          </div>
+        );
+      } else {
+        return null;
+      }
+    }
+    return null;
+  };
+
+  const checkForCurrentShiftTime = (event, startTime, endTime) => {
     const start = new Date(event.start_time).getTime();
     const end = new Date(event.end_time).getTime();
-    const currentDate = new Date().toLocaleDateString("en-US");
-    const currentDayStartTime = new Date(`${currentDate}, 7:00:00`).getTime();
-    const currentDayEndTime = new Date(`${currentDate}, 19:00:00`).getTime();
 
-    return start <= currentDayEndTime && end >= currentDayStartTime;
+    return (
+      (start >= startTime && end < endTime) ||
+      (start < endTime && end > startTime)
+    );
   };
 
-  const renderTabHeader = eventData => {
-    return eventData.map((event, i) => {
-      return checkForCurrentShiftTime(event) ? (
-        <TableCell key={i} style={{ padding: 5, whiteSpace: "nowrap" }}>
-          {new Date(event.start_time).getHours()}
-          {" - "}
-          {new Date(event.end_time).getHours()}
-        </TableCell>
-      ) : null;
-    });
+  const renderTabHeader = () => {
+    return eventTime.map((event, i) => (
+      <TableCell key={i} style={{ padding: 5, whiteSpace: "nowrap" }}>
+        {event}
+      </TableCell>
+    ));
   };
 
   const renderDayTabs = () => {
@@ -579,10 +621,7 @@ const ChartReport = ({
       const endDate = new Date(eventData[eventData.length - 1].end_time);
       const days = getDateArray(startDate, endDate);
       days.push(new Date());
-      return parsedMachine.map(machine => {
-        //console.log(chartData[machine]);
-        return renderTableContent(chartData[machine].event);
-      });
+      return renderTableContent(chartData);
     }
   };
 
@@ -594,7 +633,7 @@ const ChartReport = ({
             <TableCell key="blank" style={{ width: 110 }} align="center">
               {" "}
             </TableCell>
-            {renderTabHeader(eventData)}
+            {renderTabHeader()}
           </TableRow>
         </TableHead>
         <TableBody>{renderTabBody(eventData)}</TableBody>
@@ -606,9 +645,11 @@ const ChartReport = ({
     return (
       <React.Fragment>
         <Paper className={classes.days}>{renderEventBar()}</Paper>
-        <Paper className={`${classes.days} ${classes.pie}`}>
-          {renderPieChart()}
-        </Paper>
+        {pieData && pieData.length ? (
+          <Paper className={`${classes.days} ${classes.pie}`}>
+            {renderPieChart()}
+          </Paper>
+        ) : null}
       </React.Fragment>
     );
   };
@@ -622,6 +663,7 @@ const ChartReport = ({
 
 ChartReport.propTypes = {
   chartData: PropTypes.object.isRequired,
+  pieData: PropTypes.array.isRequired,
   handleDialogToggle: PropTypes.func.isRequired,
   handleChartViewChange: PropTypes.func.isRequired,
   handleDayChange: PropTypes.func.isRequired,
@@ -634,6 +676,7 @@ ChartReport.propTypes = {
 
 ChartReport.defaultProps = {
   chartData: {},
+  pieData: [],
   handleDialogToggle: () => {},
   handleChartViewChange: () => {},
   handleDayChange: () => {},

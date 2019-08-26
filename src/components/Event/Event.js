@@ -41,6 +41,7 @@ const Event = props => {
           <div className={classes.root}>
             <ChartReport
               chartData={props.stopData || {}}
+              pieData={props.pieData || []}
               handleDialogToggle={props.handleDialogToggle}
               handleChartViewChange={props.handleChartViewChange}
               chartView={props.chartView}
