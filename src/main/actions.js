@@ -150,7 +150,7 @@ export const fetchStopData = () => async (dispatch, getState) => {
   let parsedData = {};
   await Promise.all(
     APIS.map(async api => {
-      const startTime = appData["filler"].sku.sku_start_time.split(".")[0];
+      //const startTime = appData["filler"].sku.sku_start_time.split(".")[0];
       const url = `${api.url}?startTime=${startTime}&endTime=${currentDateTime}`;
 
       return await fetch(url)

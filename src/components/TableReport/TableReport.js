@@ -288,6 +288,7 @@ const TableReport = ({
             {status.value}
           </TableCell>
           {Object.keys(tableData).map((machine, i) => {
+            const cellData = tableData[machine][status.key] || "-";
             return (
               <TableCell
                 key={i}
@@ -303,20 +304,20 @@ const TableReport = ({
                 {status.meta ? (
                   status.meta.showMinute ? (
                     tableData[machine][status.key] &&
-                    parseFloat(tableData[machine][status.key])
+                    parseFloat(cellData)
                       .toFixed(2)
                       .toString()
                       .replace(".", ":")
                   ) : (
-                    `${parseFloat(tableData[machine][status.key])
+                    `${parseFloat(cellData)
                       .toFixed(2)
                       .toString()
                       .replace(".00", "")}%`
                   )
                 ) : status.key === "active_alarm" ? (
-                  <AlarmScroll alarm={tableData[machine][status.key]} />
+                  <AlarmScroll alarm={cellData} />
                 ) : (
-                  tableData[machine][status.key]
+                  upperFirst(cellData.toString().replace("_", " "))
                 )}
               </TableCell>
             );
@@ -326,7 +327,7 @@ const TableReport = ({
     });
 
     //Finding maximum length of fault array
-    let maxFault = 0;
+    let maxFault = 5;
     Object.keys(tableData).map((machine, i) => {
       if (
         tableData[machine].hasOwnProperty("count_wise") &&
@@ -358,6 +359,7 @@ const TableReport = ({
             {`Top Fault ${index + 1}`}
           </TableCell>
           {Object.keys(tableData).map((machine, i) => {
+            console.log("machine", machine);
             return (
               <TableCell
                 key={i}
@@ -399,7 +401,7 @@ const TableReport = ({
                 key={i}
                 className={`${classes.capitalize} ${classes.data}`}
               >
-                {tableData[machine][status.key]}
+                {tableData[machine][status.key] || "-"}
               </TableCell>
             );
           })}
@@ -425,7 +427,7 @@ const TableReport = ({
       return `${tableData[machine].time_wise[index].name} (${tableData[machine].time_wise[index].frequency})`;
     }
 
-    return null;
+    return "-";
   };
 
   const renderTable = () => {
