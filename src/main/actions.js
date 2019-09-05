@@ -26,19 +26,26 @@ export const fetchData = () => dispatch => {
     REACT_APP_LABELLER_API,
     REACT_APP_SHRINK_API,
     REACT_APP_INDUCTION_API,
-    REACT_APP_SKU_API,
-    REACT_APP_FAULT_API,
-    REACT_APP_ALARM_API
+    REACT_APP_ALARM_API,
+    REACT_APP_STOP_API
   } = process.env;
+
+  const currentDateTime = new Date().toISOString().split(".")[0];
+  const currentDate = new Date().toLocaleDateString("en-US");
+  const startTime = new Date(`${currentDate}, 7:00:00`)
+    .toISOString()
+    .split(".")[0];
 
   const APIS = [
     { name: "filler", url: REACT_APP_FILLER_API },
     { name: "induction", url: REACT_APP_INDUCTION_API },
     { name: "labeller", url: REACT_APP_LABELLER_API },
     { name: "shrink", url: REACT_APP_SHRINK_API },
-    { name: "sku", url: REACT_APP_SKU_API },
-    { name: "fault", url: REACT_APP_FAULT_API },
-    { name: "alarm", url: REACT_APP_ALARM_API }
+    { name: "alarm", url: REACT_APP_ALARM_API },
+    {
+      name: "stop",
+      url: `${REACT_APP_STOP_API}?startTime=${startTime}&endTime=${currentDateTime}`
+    }
   ];
 
   const data = Promise.all(
@@ -94,7 +101,7 @@ export const parseData = async (data, dispatch) => {
       )}%`;
     }
     if (item && item.length) {
-      item.map(value => {
+      item.map((value, index) => {
         if (value.hasOwnProperty("machine_name")) {
           machineName = value.machine_name;
         }
@@ -111,6 +118,19 @@ export const parseData = async (data, dispatch) => {
             ...value
           };
         }
+        if (
+          value &&
+          value.hasOwnProperty("machine_name") &&
+          parsedData.hasOwnProperty(machineName) &&
+          (value.hasOwnProperty("end_time") &&
+            value.hasOwnProperty("start_time") &&
+            value.hasOwnProperty("stop_name"))
+        ) {
+          parsedData[machineName]["stops"] = {
+            ...parsedData[machineName]["stops"],
+            [index]: value
+          };
+        }
         return value;
       });
     }
@@ -120,63 +140,56 @@ export const parseData = async (data, dispatch) => {
 };
 
 export const fetchStopData = () => async (dispatch, getState) => {
-  const { REACT_APP_EVENT_BAR_API, REACT_APP_PIE_CHART_API } = process.env;
-
-  const { appData } = getState().Main;
-
-  const APIS = [
-    { name: "event", url: REACT_APP_EVENT_BAR_API },
-    { name: "pie", url: REACT_APP_PIE_CHART_API }
-  ];
-
-  const machines = [
-    "line",
-    "filler",
-    "induction",
-    "labeller",
-    "shrink",
-    "packer",
-    "erector",
-    "c_weigher",
-    "c_sealer"
-  ];
-
-  const currentDateTime = new Date().toISOString().split(".")[0];
-  const currentDate = new Date().toLocaleDateString("en-US");
-  const startTime = new Date(`${currentDate}, 7:00:00`)
-    .toISOString()
-    .split(".")[0];
-
-  let parsedData = {};
-  await Promise.all(
-    APIS.map(async api => {
-      //const startTime = appData["filler"].sku.sku_start_time.split(".")[0];
-      const url = `${api.url}?startTime=${startTime}&endTime=${currentDateTime}`;
-
-      return await fetch(url)
-        .then(result => result.json())
-        .then(data => {
-          parsedData = {
-            ...parsedData,
-            [api.name]: data
-          };
-          return data;
-        })
-        .catch(err => console.error(err));
-    })
-  );
-
-  setTimeout(() => {
-    let stopVal = {};
-    const pieData = parsedData.pie;
-    const group = groupBy(parsedData.event, "machine_name");
-    machines.map(
-      machine =>
-        (stopVal[machine] = {
-          pie: parsedData.pie,
-          event: group[machine] ? group[machine] : group["filler"]
-        })
-    );
-    dispatch({ type: FETCHED_STOP_DATA, stopVal, pieData });
-  }, 3000);
+  // const { REACT_APP_STOP_API } = process.env;
+  // const { appData } = getState().Main;
+  // const APIS = [
+  //   { name: "event", url: REACT_APP_STOP_API },
+  //   { name: "pie", url: REACT_APP_PIE_CHART_API }
+  // ];
+  // const machines = [
+  //   "line",
+  //   "filler",
+  //   "induction",
+  //   "labeller",
+  //   "shrink",
+  //   "packer",
+  //   "erector",
+  //   "c_weigher",
+  //   "c_sealer"
+  // ];
+  // const currentDateTime = new Date().toISOString().split(".")[0];
+  // const currentDate = new Date().toLocaleDateString("en-US");
+  // const startTime = new Date(`${currentDate}, 7:00:00`)
+  //   .toISOString()
+  //   .split(".")[0];
+  // let parsedData = {};
+  // await Promise.all(
+  //   APIS.map(async api => {
+  //     //const startTime = appData["filler"].sku.sku_start_time.split(".")[0];
+  //     const url = `${api.url}?startTime=${startTime}&endTime=${currentDateTime}`;
+  //     return await fetch(url)
+  //       .then(result => result.json())
+  //       .then(data => {
+  //         parsedData = {
+  //           ...parsedData,
+  //           [api.name]: data
+  //         };
+  //         return data;
+  //       })
+  //       .catch(err => console.error(err));
+  //   })
+  // );
+  // setTimeout(() => {
+  //   let stopVal = {};
+  //   const pieData = parsedData.pie;
+  //   const group = groupBy(parsedData.event, "machine_name");
+  //   machines.map(
+  //     machine =>
+  //       (stopVal[machine] = {
+  //         pie: parsedData.pie,
+  //         event: group[machine] ? group[machine] : group["filler"]
+  //       })
+  //   );
+  //   dispatch({ type: FETCHED_STOP_DATA, stopVal, pieData });
+  // }, 3000);
 };

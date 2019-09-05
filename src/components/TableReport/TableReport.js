@@ -359,7 +359,6 @@ const TableReport = ({
             {`Top Fault ${index + 1}`}
           </TableCell>
           {Object.keys(tableData).map((machine, i) => {
-            console.log("machine", machine);
             return (
               <TableCell
                 key={i}
