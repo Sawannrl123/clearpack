@@ -1,12 +1,7 @@
-import { groupBy } from "lodash";
+import { LOADING, ERROR, SUCCESS, FETCHED_DATA } from "./actionTypes";
 
-import {
-  LOADING,
-  ERROR,
-  SUCCESS,
-  FETCHED_DATA,
-  FETCHED_STOP_DATA
-} from "./actionTypes";
+import { getCurrentDate } from "../utils";
+import { object } from "prop-types";
 
 export const loading = loading => dispatch => {
   dispatch({ type: LOADING, loading });
@@ -22,29 +17,19 @@ export const error = error => dispatch => {
 
 export const fetchData = () => dispatch => {
   const {
-    REACT_APP_FILLER_API,
-    REACT_APP_LABELLER_API,
-    REACT_APP_SHRINK_API,
-    REACT_APP_INDUCTION_API,
+    REACT_APP_ALL_MACHINE_API,
+    REACT_APP_SKU_API,
     REACT_APP_ALARM_API,
     REACT_APP_STOP_API
   } = process.env;
 
-  const currentDateTime = new Date().toISOString().split(".")[0];
-  const currentDate = new Date().toLocaleDateString("en-US");
-  const startTime = new Date(`${currentDate}, 7:00:00`)
-    .toISOString()
-    .split(".")[0];
-
   const APIS = [
-    { name: "filler", url: REACT_APP_FILLER_API },
-    { name: "induction", url: REACT_APP_INDUCTION_API },
-    { name: "labeller", url: REACT_APP_LABELLER_API },
-    { name: "shrink", url: REACT_APP_SHRINK_API },
+    { name: "all", url: REACT_APP_ALL_MACHINE_API },
     { name: "alarm", url: REACT_APP_ALARM_API },
+    { name: "sku", url: REACT_APP_SKU_API },
     {
       name: "stop",
-      url: `${REACT_APP_STOP_API}?startTime=${startTime}&endTime=${currentDateTime}`
+      url: `${REACT_APP_STOP_API}?startTime=${getCurrentDate()}T7:00:00&endTime=${getCurrentDate()}T19:00:00`
     }
   ];
 
@@ -52,13 +37,6 @@ export const fetchData = () => dispatch => {
     APIS.map(async api => {
       return await fetch(api.url)
         .then(result => result.json())
-        .then(data => {
-          if (data && data.hasOwnProperty("shift")) {
-            data["machine"] = api.name;
-          }
-
-          return data;
-        })
         .catch(err => console.error(err));
     })
   );
@@ -72,8 +50,84 @@ export const fetchData = () => dispatch => {
     });
 };
 
-export const parseData = async (data, dispatch) => {
+const parseData = async (data, dispatch) => {
+  const machineData = data[0];
+  const alarmData = data[1];
+  const skuData = data[2];
+  const stopData = data[3];
+  let prevItem = null;
   const parsedData = {};
+
+  machineData.map(machine => {
+    parsedData[machine.machine] = machine;
+    if (prevItem === null) {
+      parsedData[machine.machine]["count_difference"] = machine.total_count;
+      prevItem = machine;
+    } else {
+      parsedData[machine.machine][
+        "count_difference"
+      ] = `${prevItem.total_count - machine.total_count}_${
+        machine.total_count
+      }`;
+      prevItem = machine;
+    }
+    return parsedData;
+  });
+
+  alarmData.map(alarm => {
+    if (parsedData.hasOwnProperty(alarm.machine_name)) {
+      parsedData[alarm.machine_name]["alarm"] = alarm;
+      return parsedData;
+    }
+    return parsedData;
+  });
+
+  skuData.map(sku => {
+    if (parsedData.hasOwnProperty(sku.machine_name)) {
+      parsedData[sku.machine_name]["sku"] = sku;
+      parsedData[sku.machine_name]["target"] = `${sku.target_quanity}/${
+        sku.current_count
+      }/${parseFloat((sku.current_count / sku.target_quanity) * 100).toFixed(
+        2
+      )}%`;
+      return parsedData;
+    }
+    return parsedData;
+  });
+
+  stopData.map((stop, index) => {
+    if (parsedData.hasOwnProperty(stop.machine_name)) {
+      parsedData[stop.machine_name]["stop"] = {
+        ...parsedData[stop.machine_name]["stop"],
+        [index]: stop
+      };
+      return parsedData;
+    }
+    return parsedData;
+  });
+
+  Object.keys(parsedData).map(machine => {
+    const machineStopData = parsedData[machine].stop;
+    const faultArray = Object.keys(machineStopData)
+      .map(item => machineStopData[item])
+      .filter(item => item.machine_name.indexOf("_") !== -1);
+    const topFaults = faultArray
+      .sort((a, b) => {
+        const diffATime =
+          new Date(a.end_time).getTime() - new Date(a.start_time).getTime();
+        const diffBTime =
+          new Date(b.end_time).getTime() - new Date(b.start_time).getTime();
+        return diffBTime - diffATime;
+      })
+      .slice(0, 5);
+    parsedData[machine]["topFault"] = topFaults;
+  });
+
+  dispatch({ type: FETCHED_DATA, appData: parsedData });
+};
+
+export const parseDatas = async (data, dispatch) => {
+  /*const parsedData = {};
   let machineName = null;
   let prevItem = null;
   await data.map(item => {
@@ -136,7 +190,8 @@ export const parseData = async (data, dispatch) => {
     }
     return item;
   });
-  dispatch({ type: FETCHED_DATA, appData: parsedData });
+  dispatch({ type: FETCHED_DATA, appData: parsedData });*/
+  console.log("recieved data", data);
 };
 
 export const fetchStopData = () => async (dispatch, getState) => {

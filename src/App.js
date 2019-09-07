@@ -26,7 +26,7 @@ class App extends PureComponent {
     const { isMounted } = this.state;
     if (!isMounted) {
       await this.props.fetchData();
-      this.setState(
+      /*this.setState(
         {
           isMounted: true
         },
@@ -36,7 +36,7 @@ class App extends PureComponent {
             5000
           );
         }
-      );
+      );*/
     }
   };
 

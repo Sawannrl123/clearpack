@@ -15,6 +15,7 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Folder from "@material-ui/icons/Folder";
 import AlarmScroll from "./AlarmScroll";
+import { code } from "../../utils";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -119,7 +120,7 @@ const TableReport = ({
     empty: "#A9DBDE",
     not_ready: "#E60748",
     blocked: "#BEBEBE",
-    planned: "#FEF729"
+    pdt: "#FEF729"
   };
 
   const renderButtons = () => (
@@ -247,7 +248,7 @@ const TableReport = ({
       { key: "target", value: "Target/Achieved for Batch" },
       { key: "count_difference", value: "Total count/buffer for Batch" },
       { key: "count_difference", value: "Shift Bottle/Case" },
-      { key: "speed", value: "Speed BPM" },
+      { key: "bpm", value: "Speed BPM" },
       { key: "no_of_stop", value: "No. of Filler Stops" },
       {
         key: "time_loss",
@@ -268,7 +269,7 @@ const TableReport = ({
       { key: "quality", value: "Quality", meta: { showPercentage: true } },
       { key: "condition", value: "Current Status" },
       { key: "current_first_fault", value: "Current First Fault" },
-      { key: "active_alarm", value: "Current Active Alarm" }
+      { key: "alarm", value: "Current Active Alarm" }
     ];
     const tableTop = machineStatus.map((status, index) => {
       return (
@@ -288,7 +289,11 @@ const TableReport = ({
             {status.value}
           </TableCell>
           {Object.keys(tableData).map((machine, i) => {
-            const cellData = tableData[machine][status.key] || "-";
+            const cellData =
+              tableData[machine][status.key] === null ||
+              tableData[machine][status.key] === undefined
+                ? "-"
+                : tableData[machine][status.key];
             return (
               <TableCell
                 key={i}
@@ -314,8 +319,10 @@ const TableReport = ({
                       .toString()
                       .replace(".00", "")}%`
                   )
-                ) : status.key === "active_alarm" ? (
-                  <AlarmScroll alarm={cellData} />
+                ) : status.key === "alarm" ? (
+                  <AlarmScroll alarm={cellData.alarm} />
+                ) : status.key === "count_difference" ? (
+                  cellData
                 ) : (
                   upperFirst(cellData.toString().replace("_", " "))
                 )}
@@ -326,22 +333,7 @@ const TableReport = ({
       );
     });
 
-    //Finding maximum length of fault array
-    let maxFault = 5;
-    Object.keys(tableData).map((machine, i) => {
-      if (
-        tableData[machine].hasOwnProperty("count_wise") &&
-        tableData[machine].count_wise.length > maxFault
-      ) {
-        maxFault = tableData[machine].count_wise.length;
-      }
-      return null;
-    });
-
-    //Creating fault array with maximum length of fault array
-    const faultArray = Array.from({ length: maxFault }, (v, i) => i);
-
-    const tableMid = faultArray.map((fault, index) => {
+    const tableMid = [0, 1, 2, 3, 4].map((fault, index) => {
       return (
         <TableRow
           key={index}
@@ -412,18 +404,19 @@ const TableReport = ({
   };
 
   const renderFaultData = (machine, index) => {
-    if (
-      tableView === "count_wise" &&
-      tableData[machine].hasOwnProperty("count_wise")
-    ) {
-      return `${tableData[machine].count_wise[index].name} (${tableData[machine].count_wise[index].frequency})`;
-    }
+    const faultData = tableData[machine].topFault[index];
+    if (faultData) {
+      const count = faultData.machine_name.split("_")[1];
+      if (tableView === "count_wise") {
+        return `${code[count]} (${count})`;
+      }
 
-    if (
-      tableView === "time_wise" &&
-      tableData[machine].hasOwnProperty("time_wise")
-    ) {
-      return `${tableData[machine].time_wise[index].name} (${tableData[machine].time_wise[index].frequency})`;
+      if (tableView === "time_wise") {
+        const startDate = new Date(faultData.start_time).getTime();
+        const endDate = new Date(faultData.end_time).getTime();
+        const time = (endDate - startDate) / 1000;
+        return `${code[count]} (${time})`;
+      }
     }
 
     return "-";
