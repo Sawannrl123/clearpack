@@ -6,6 +6,8 @@ import Grid from "@material-ui/core/Grid";
 import { SiteContainer, StatusReport, TableReport } from "../../components";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Divider from "@material-ui/core/Divider";
+import { skuCode } from "../../utils";
+
 const useStyles = makeStyles(theme => ({
   "@global": {
     "*::-webkit-scrollbar": {
@@ -78,7 +80,7 @@ const SmartFactoryWorx = props => {
               align="center"
               className={classes.title}
             >
-              Mundra 5I/2I - 5000ml
+              {props && skuCode[props.appData.filler.sku.sku_name]}
             </Typography>
             <Divider className={classes.divider} />
             <div className={classes.spacing}>

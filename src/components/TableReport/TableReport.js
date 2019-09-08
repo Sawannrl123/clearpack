@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { startCase } from "lodash";
+import { startCase, reduce } from "lodash";
 import { Link } from "react-router-dom";
 import { upperFirst } from "lodash";
 import Button from "@material-ui/core/Button";
@@ -15,7 +15,7 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Folder from "@material-ui/icons/Folder";
 import AlarmScroll from "./AlarmScroll";
-import { code } from "../../utils";
+import { alarmCode } from "../../utils";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -118,7 +118,7 @@ const TableReport = ({
   const colors = {
     ready: "#0CBA5B",
     empty: "#A9DBDE",
-    not_ready: "#E60748",
+    waiting: "#E60748",
     blocked: "#BEBEBE",
     pdt: "#FEF729"
   };
@@ -365,7 +365,7 @@ const TableReport = ({
     });
 
     const bottomArray = [
-      { key: "mrbf", value: "MTBF" },
+      { key: "mtbf", value: "MTBF" },
       { key: "mttr", value: "MTTR" }
     ];
 
@@ -392,7 +392,10 @@ const TableReport = ({
                 key={i}
                 className={`${classes.capitalize} ${classes.data}`}
               >
-                {tableData[machine][status.key] || "-"}
+                {tableData[machine][status.key] &&
+                tableData[machine][status.key] !== "N/A"
+                  ? tableData[machine][status.key]
+                  : "-"}
               </TableCell>
             );
           })}
@@ -403,20 +406,29 @@ const TableReport = ({
     return [tableTop, tableMid, tableBottom];
   };
 
+  const reduceFrequency = (result, value) => {
+    const startDate = new Date(value.start_time).getTime();
+    const endDate = new Date(value.end_time).getTime();
+    const difference = endDate - startDate;
+    return result + difference;
+  };
+
   const renderFaultData = (machine, index) => {
     const faultData = tableData[machine].topFault[index];
     if (faultData) {
-      const count = faultData.machine_name.split("_")[1];
-      if (tableView === "count_wise") {
-        return `${code[count]} (${count})`;
-      }
+      const count = faultData.length;
+      const code = faultData[0].machine_name.split("_")[1];
+      if (code) {
+        if (tableView === "count_wise") {
+          return `${alarmCode[code]} (${count})`;
+        }
 
-      if (tableView === "time_wise") {
-        const startDate = new Date(faultData.start_time).getTime();
-        const endDate = new Date(faultData.end_time).getTime();
-        const time = (endDate - startDate) / 1000;
-        return `${code[count]} (${time})`;
+        if (tableView === "time_wise") {
+          const time = reduce(faultData, reduceFrequency, 0) / 1000;
+          return `${alarmCode[code]} (${time})`;
+        }
       }
+      return "-";
     }
 
     return "-";

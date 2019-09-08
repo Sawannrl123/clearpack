@@ -6,7 +6,7 @@ import { useTheme } from "@material-ui/styles";
 import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
-import ButtonGroup from "@material-ui/core/ButtonGroup";
+//import ButtonGroup from "@material-ui/core/ButtonGroup";
 import Paper from "@material-ui/core/Paper";
 import { Doughnut } from "react-chartjs-2";
 import Box from "@material-ui/core/Box";
@@ -127,13 +127,13 @@ const useStyles = makeStyles(theme => ({
     border: 0
   },
   contentWrapper: {
-    display: "flex"
+    display: "flex",
+    width: 100
   }
 }));
 
 const ChartReport = ({
   chartData,
-  pieData,
   handleDialogToggle,
   handleChartViewChange,
   handleSubmitComment,
@@ -152,6 +152,13 @@ const ChartReport = ({
   const classes = useStyles();
   const theme = useTheme();
 
+  chartData = {
+    ...chartData,
+    packer: chartData.filler,
+    erector: chartData.induction,
+    c_weigher: chartData.labeller,
+    c_sealer: chartData.shrink
+  };
   const parsedMachine =
     chartData &&
     Object.keys(chartData).filter(machine => {
@@ -199,11 +206,11 @@ const ChartReport = ({
   };
 
   const colors = {
-    green_stop: "#0CBA5B",
-    fault_stop: "#A9DBDE",
-    not_stop: "#E60748",
-    block_stop: "#BEBEBE",
-    waiting_time: "#FEF729"
+    ready: "#0CBA5B",
+    stop: "#A9DBDE",
+    waiting: "#E60748",
+    blocked: "#BEBEBE",
+    pdt: "#FEF729"
   };
 
   const handleChange = name => event => {
@@ -235,7 +242,7 @@ const ChartReport = ({
     );
   };
 
-  const renderButtons = () => (
+  /*const renderButtons = () => (
     <ButtonGroup
       color="primary"
       variant="contained"
@@ -260,7 +267,7 @@ const ChartReport = ({
         Pie Chart
       </Button>
     </ButtonGroup>
-  );
+  );*/
 
   const renderEventBar = () => {
     return <React.Fragment>{renderDayTabs()}</React.Fragment>;
@@ -283,14 +290,13 @@ const ChartReport = ({
   const renderDoughnutChart = machine => {
     const pickedData = chartData[machine].pie;
 
-    const labels = pickedData.map(label => {
-      const title = label._id.replace("_", " ");
-      return `${startCase(title)}`;
-    });
+    const labels = Object.keys(pickedData).map(label => `${startCase(label)}`);
 
-    const values = pickedData.map(value => value.total);
+    const values = Object.keys(pickedData).map(
+      value => pickedData[value][value]
+    );
 
-    const background = pickedData.map(value => colors[value._id]);
+    const background = Object.keys(pickedData).map(value => colors[value]);
 
     const data = {
       labels,
@@ -486,20 +492,16 @@ const ChartReport = ({
     });
   };
 
-  const calcWidth = (start, end) => {
-    const startDate = new Date(start).getTime();
-    const endDate = new Date(end).getTime();
-    return Math.abs((endDate - startDate) / 1000 / 60);
+  const calcWidth = duration => {
+    const width = Math.abs(duration / 60);
+    return width > 50 ? "100%" : width;
   };
 
-  const buildDateToFilter = time => {
-    const parsedTime = time.split("-");
-    const start = `${parsedTime[0]}:00:00`;
-    const end = `${parsedTime[1]}:00:00`;
-    const currentDate = new Date().toLocaleDateString("en-US");
-    const offset = -(new Date().getTimezoneOffset() / 60);
-    const startTime = `${currentDate}T${start}${offset}`;
-    const endTime = `${currentDate}T${end}${offset}`;
+  const buildDateToFilter = (event, startTime, endTime) => {
+    const st = new Date(event.start_time).getTime();
+    const et = new Date(event.end_time).getTime();
+    if (st < endTime && et >= startTime) return true;
+    return null;
   };
 
   const renderBodyContent = (eventData, machine, time) => {
@@ -510,95 +512,81 @@ const ChartReport = ({
     const startTime = new Date(`${currentDate}, ${start}`).getTime();
     const endTime = new Date(`${currentDate}, ${end}`).getTime();
     return (eventData[machine].event || []).map((event, index) => {
-      return renderMachineData(machine, event, startTime, endTime, index);
+      if (buildDateToFilter(event, startTime, endTime))
+        return renderMachineData(machine, event, index);
+      return null;
     });
   };
 
-  const renderMachineData = (machine, event, startTime, endTime, index) => {
-    if (checkForCurrentShiftTime(event, startTime, endTime, index)) {
-      if (machine === "filler") {
-        return (
-          <div
-            className={classes.status}
-            key={index}
-            style={{
-              backgroundColor: colors[event.stop_name],
-              border:
-                event.stop_name === "not_stop" &&
-                `1px solid ${theme.palette.grey[300]}`,
-              minWidth: 5,
-              width: calcWidth(event.start_time, event.end_time),
-              maxWidth: 350
-            }}
-            title={`${startCase(event.stop_name)} \n ${new Date(
-              event.start_time
-            ).toLocaleString()} - ${new Date(event.end_time).toLocaleString()}`}
-          >
-            {event.stop_name === "not_stop" && (
-              <React.Fragment>
-                <div
-                  className={classes.comment}
-                  onClick={handleClickOpen("stop", event)}
-                />
-                <div
-                  className={classes.video}
-                  onClick={e => {
-                    openVideoPopup(event);
-                  }}
-                />
-              </React.Fragment>
-            )}
-          </div>
-        );
-      } else if (event.stop_name !== "green_stop") {
-        return (
-          <div
-            className={classes.status}
-            key={index}
-            style={{
-              backgroundColor: colors[event.stop_name],
-              border:
-                event.stop_name === "not_stop" &&
-                `1px solid ${theme.palette.grey[300]}`,
-              minWidth: 5,
-              width: calcWidth(event.start_time, event.end_time),
-              maxWidth: 350
-            }}
-            title={`${startCase(event.stop_name)} \n ${new Date(
-              event.start_time
-            ).toLocaleString()} - ${new Date(event.end_time).toLocaleString()}`}
-          >
-            {event.stop_name === "not_stop" && (
-              <React.Fragment>
-                <div
-                  className={classes.comment}
-                  onClick={handleClickOpen("stop", event)}
-                />
-                <div
-                  className={classes.video}
-                  onClick={e => {
-                    openVideoPopup(event);
-                  }}
-                />
-              </React.Fragment>
-            )}
-          </div>
-        );
-      } else {
-        return null;
-      }
+  const renderMachineData = (machine, event, index) => {
+    if (machine === "filler") {
+      return (
+        <div
+          className={classes.status}
+          key={index}
+          style={{
+            backgroundColor: colors[event.stop_name],
+            border:
+              event.stop_name === "waiting" &&
+              `1px solid ${theme.palette.grey[300]}`,
+            minWidth: 5,
+            width: calcWidth(event.duration)
+          }}
+          title={`${startCase(event.stop_name)} \n ${new Date(
+            event.start_time
+          ).toLocaleString()} - ${new Date(event.end_time).toLocaleString()}`}
+        >
+          {event.stop_name === "waiting" && (
+            <React.Fragment>
+              <div
+                className={classes.comment}
+                onClick={handleClickOpen("stop", event)}
+              />
+              <div
+                className={classes.video}
+                onClick={e => {
+                  openVideoPopup(event);
+                }}
+              />
+            </React.Fragment>
+          )}
+        </div>
+      );
+    } else if (event.stop_name !== "ready") {
+      return (
+        <div
+          className={classes.status}
+          key={index}
+          style={{
+            backgroundColor: colors[event.stop_name],
+            border:
+              event.stop_name === "waiting" &&
+              `1px solid ${theme.palette.grey[300]}`,
+            minWidth: 5,
+            width: calcWidth(event.duration)
+          }}
+          title={`${startCase(event.stop_name)} \n ${new Date(
+            event.start_time
+          ).toLocaleString()} - ${new Date(event.end_time).toLocaleString()}`}
+        >
+          {event.stop_name === "waiting" && (
+            <React.Fragment>
+              <div
+                className={classes.comment}
+                onClick={handleClickOpen("stop", event)}
+              />
+              <div
+                className={classes.video}
+                onClick={e => {
+                  openVideoPopup(event);
+                }}
+              />
+            </React.Fragment>
+          )}
+        </div>
+      );
     }
     return null;
-  };
-
-  const checkForCurrentShiftTime = (event, startTime, endTime) => {
-    const start = new Date(event.start_time).getTime();
-    const end = new Date(event.end_time).getTime();
-
-    return (
-      (start >= startTime && end < endTime) ||
-      (start < endTime && end > startTime)
-    );
   };
 
   const renderTabHeader = () => {
@@ -610,12 +598,7 @@ const ChartReport = ({
   };
 
   const renderDayTabs = () => {
-    if (
-      chartData &&
-      parsedMachine &&
-      parsedMachine.length &&
-      chartData[parsedMachine[0]].hasOwnProperty("event")
-    ) {
+    if (chartData && parsedMachine && parsedMachine.length) {
       const eventData = chartData[parsedMachine[0]].event;
       const startDate = new Date(eventData[0].start_time);
       const endDate = new Date(eventData[eventData.length - 1].end_time);
@@ -645,7 +628,7 @@ const ChartReport = ({
     return (
       <React.Fragment>
         <Paper className={classes.days}>{renderEventBar()}</Paper>
-        {pieData && pieData.length ? (
+        {parsedPieMachine && parsedPieMachine.length ? (
           <Paper className={`${classes.days} ${classes.pie}`}>
             {renderPieChart()}
           </Paper>
@@ -663,7 +646,6 @@ const ChartReport = ({
 
 ChartReport.propTypes = {
   chartData: PropTypes.object.isRequired,
-  pieData: PropTypes.array.isRequired,
   handleDialogToggle: PropTypes.func.isRequired,
   handleChartViewChange: PropTypes.func.isRequired,
   handleDayChange: PropTypes.func.isRequired,
@@ -676,7 +658,6 @@ ChartReport.propTypes = {
 
 ChartReport.defaultProps = {
   chartData: {},
-  pieData: [],
   handleDialogToggle: () => {},
   handleChartViewChange: () => {},
   handleDayChange: () => {},

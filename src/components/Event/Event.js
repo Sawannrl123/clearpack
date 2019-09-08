@@ -36,12 +36,11 @@ const Event = props => {
   const theme = useTheme();
   return (
     <React.Fragment>
-      {props.stopData !== null && props.appData !== null ? (
+      {props.appData !== null ? (
         <SiteContainer fullPage backgroundColor={theme.palette.grey[900]}>
           <div className={classes.root}>
             <ChartReport
-              chartData={props.stopData || {}}
-              pieData={props.pieData || []}
+              chartData={props.appData || {}}
               handleDialogToggle={props.handleDialogToggle}
               handleChartViewChange={props.handleChartViewChange}
               chartView={props.chartView}

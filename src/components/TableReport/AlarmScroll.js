@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { code } from "../../utils";
+import { alarmCode } from "../../utils";
 
 class AlarmScroll extends React.PureComponent {
   state = {
@@ -30,7 +30,7 @@ class AlarmScroll extends React.PureComponent {
     const { alarm } = this.props;
     return (
       <React.Fragment>
-        {alarm[index] ? code[alarm[index].code] : "-"}
+        {alarm[index] ? alarmCode[alarm[index].code] : "-"}
       </React.Fragment>
     );
   }

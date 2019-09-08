@@ -1,7 +1,6 @@
 import { LOADING, ERROR, SUCCESS, FETCHED_DATA } from "./actionTypes";
-
+import { groupBy, reduce } from "lodash";
 import { getCurrentDate } from "../utils";
-import { object } from "prop-types";
 
 export const loading = loading => dispatch => {
   dispatch({ type: LOADING, loading });
@@ -51,10 +50,18 @@ export const fetchData = () => dispatch => {
 };
 
 const parseData = async (data, dispatch) => {
-  const machineData = data[0];
-  const alarmData = data[1];
-  const skuData = data[2];
-  const stopData = data[3];
+  const machinesData = data[0] || [];
+  const sorting = ["filler", "induction", "labeller", "shrink"];
+  const machineData = [];
+  machinesData.map(item => {
+    const n = sorting.indexOf(item.machine);
+    machineData[n] = item;
+    return machineData;
+  });
+
+  const alarmData = data[1] || [];
+  const skuData = data[2] || [];
+  const stopData = data[3] || [];
   let prevItem = null;
   const parsedData = {};
 
@@ -96,9 +103,14 @@ const parseData = async (data, dispatch) => {
   });
 
   stopData.map((stop, index) => {
-    if (parsedData.hasOwnProperty(stop.machine_name)) {
-      parsedData[stop.machine_name]["stop"] = {
-        ...parsedData[stop.machine_name]["stop"],
+    const machineName = stop.machine_name.split("_")[0];
+    if (parsedData.hasOwnProperty(machineName)) {
+      const startTime = new Date(stop.start_time).getTime();
+      const endTime = new Date(stop.end_time).getTime();
+      const difference = endTime - startTime;
+      stop["duration"] = difference / 1000;
+      parsedData[machineName]["stop"] = {
+        ...parsedData[machineName]["stop"],
         [index]: stop
       };
       return parsedData;
@@ -108,23 +120,43 @@ const parseData = async (data, dispatch) => {
 
   Object.keys(parsedData).map(machine => {
     const machineStopData = parsedData[machine].stop;
-    const faultArray = Object.keys(machineStopData)
-      .map(item => machineStopData[item])
-      .filter(item => item.machine_name.indexOf("_") !== -1);
-    const topFaults = faultArray
-      .sort((a, b) => {
-        const diffATime =
-          new Date(a.end_time).getTime() - new Date(a.start_time).getTime();
-        const diffBTime =
-          new Date(b.end_time).getTime() - new Date(b.start_time).getTime();
-        return diffBTime - diffATime;
-      })
+
+    const fault = Object.keys(machineStopData).map(
+      item => machineStopData[item]
+    );
+
+    parsedData[machine]["event"] = fault;
+
+    const pie = groupBy(fault, "stop_name");
+    parsedData[machine]["pie"] = {};
+    Object.keys(pie).map(p => {
+      parsedData[machine]["pie"][p] = {
+        ...parsedData[machine]["pie"][p],
+        [p]: reduce(pie[p], reducePieData, 0)
+      };
+      return parsedData;
+    });
+
+    const filteredFault = fault.filter(
+      item => item.machine_name.indexOf("_") !== -1
+    );
+
+    const faultGroup = groupBy(filteredFault, "machine_name");
+
+    const topFaults = Object.keys(faultGroup)
+      .sort((a, b) => faultGroup[b].length - faultGroup[a].length)
+      .map(f => faultGroup[f])
       .slice(0, 5);
+
     parsedData[machine]["topFault"] = topFaults;
+
+    return parsedData;
   });
 
   dispatch({ type: FETCHED_DATA, appData: parsedData });
 };
+
+const reducePieData = (result, value) => result + value.duration;
 
 export const parseDatas = async (data, dispatch) => {
   /*const parsedData = {};
