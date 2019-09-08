@@ -103,14 +103,14 @@ const parseData = async (data, dispatch) => {
   });
 
   stopData.map((stop, index) => {
-    const machineName = stop.machine_name.split("_")[0];
-    if (parsedData.hasOwnProperty(machineName)) {
+    if (parsedData.hasOwnProperty(stop.machine_name)) {
       const startTime = new Date(stop.start_time).getTime();
       const endTime = new Date(stop.end_time).getTime();
       const difference = endTime - startTime;
       stop["duration"] = difference / 1000;
-      parsedData[machineName]["stop"] = {
-        ...parsedData[machineName]["stop"],
+      stop["code"] = stop.stop_name.split("_")[1] || null;
+      parsedData[stop.machine_name]["stop"] = {
+        ...parsedData[stop.machine_name]["stop"],
         [index]: stop
       };
       return parsedData;
@@ -137,11 +137,9 @@ const parseData = async (data, dispatch) => {
       return parsedData;
     });
 
-    const filteredFault = fault.filter(
-      item => item.machine_name.indexOf("_") !== -1
-    );
+    const filteredFault = fault.filter(item => item.code);
 
-    const faultGroup = groupBy(filteredFault, "machine_name");
+    const faultGroup = groupBy(filteredFault, "code");
 
     const topFaults = Object.keys(faultGroup)
       .sort((a, b) => faultGroup[b].length - faultGroup[a].length)

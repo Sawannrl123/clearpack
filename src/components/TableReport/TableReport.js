@@ -118,7 +118,8 @@ const TableReport = ({
   const colors = {
     ready: "#0CBA5B",
     empty: "#A9DBDE",
-    waiting: "#E60748",
+    stop: "#E60748",
+    waiting: "#FEF729",
     blocked: "#BEBEBE",
     pdt: "#FEF729"
   };
@@ -406,18 +407,13 @@ const TableReport = ({
     return [tableTop, tableMid, tableBottom];
   };
 
-  const reduceFrequency = (result, value) => {
-    const startDate = new Date(value.start_time).getTime();
-    const endDate = new Date(value.end_time).getTime();
-    const difference = endDate - startDate;
-    return result + difference;
-  };
+  const reduceFrequency = (result, value) => result + value.duration;
 
   const renderFaultData = (machine, index) => {
     const faultData = tableData[machine].topFault[index];
     if (faultData) {
       const count = faultData.length;
-      const code = faultData[0].machine_name.split("_")[1];
+      const code = faultData[0].code;
       if (code) {
         if (tableView === "count_wise") {
           return `${alarmCode[code]} (${count})`;

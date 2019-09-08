@@ -207,8 +207,9 @@ const ChartReport = ({
 
   const colors = {
     ready: "#0CBA5B",
-    stop: "#A9DBDE",
+    empty: "#A9DBDE",
     waiting: "#E60748",
+    stop: "#E60748",
     blocked: "#BEBEBE",
     pdt: "#FEF729"
   };
